@@ -73,11 +73,14 @@ const darkTheme = {
   colors: darkColors,
 };
 
-function useProtectedRoute(user: any) {
+function useProtectedRoute(user: any, initializing: boolean) {
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
+    // Don't navigate while initializing
+    if (initializing) return;
+
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!user && !inAuthGroup) {
@@ -87,7 +90,7 @@ function useProtectedRoute(user: any) {
       // Redirect to dashboard if authenticated
       router.replace('/(tabs)/dashboard');
     }
-  }, [user, segments]);
+  }, [user, segments, initializing]);
 }
 
 export default function RootLayout() {
@@ -99,7 +102,7 @@ export default function RootLayout() {
   const setUser = useAuthStore((state) => state.setUser);
   const setLoading = useAuthStore((state) => state.setLoading);
 
-  useProtectedRoute(user);
+  useProtectedRoute(user, initializing);
 
   useEffect(() => {
     // Subscribe to auth state changes

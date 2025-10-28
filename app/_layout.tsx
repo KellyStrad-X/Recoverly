@@ -1,10 +1,14 @@
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
-import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
-import { useColorScheme } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { PaperProvider, MD3LightTheme, MD3DarkTheme, ActivityIndicator } from 'react-native-paper';
+import { useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/config/firebase';
+import { useAuthStore } from '@/stores/authStore';
+import { getUserProfile } from '@/services/authService';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -69,14 +73,75 @@ const darkTheme = {
   colors: darkColors,
 };
 
+function useProtectedRoute(user: any) {
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!user && !inAuthGroup) {
+      // Redirect to welcome if not authenticated
+      router.replace('/(auth)/welcome');
+    } else if (user && inAuthGroup) {
+      // Redirect to dashboard if authenticated
+      router.replace('/(tabs)/dashboard');
+    }
+  }, [user, segments]);
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
+  const [initializing, setInitializing] = useState(true);
+
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
+  const setLoading = useAuthStore((state) => state.setLoading);
+
+  useProtectedRoute(user);
 
   useEffect(() => {
-    // Hide splash screen once the app is ready
-    SplashScreen.hideAsync();
+    // Subscribe to auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, fetch full profile
+        const profile = await getUserProfile(firebaseUser.uid);
+
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          displayName: firebaseUser.displayName || profile?.displayName || 'User',
+          subscriptionStatus: profile?.subscriptionStatus || 'free',
+          subscriptionTier: profile?.subscriptionTier || null,
+        });
+      } else {
+        // User is signed out
+        setUser(null);
+      }
+
+      setLoading(false);
+      if (initializing) {
+        setInitializing(false);
+        SplashScreen.hideAsync();
+      }
+    });
+
+    return unsubscribe;
   }, []);
+
+  // Show loading screen while checking auth state
+  if (initializing) {
+    return (
+      <SafeAreaProvider>
+        <PaperProvider theme={lightTheme}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAFAFA' }}>
+            <ActivityIndicator size="large" color={lightTheme.colors.primary} />
+          </View>
+        </PaperProvider>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <SafeAreaProvider>

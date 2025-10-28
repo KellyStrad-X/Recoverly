@@ -14,11 +14,8 @@ export default function WelcomeScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text variant="displayMedium" style={styles.title}>
-            Recoverly
-          </Text>
-          <Text variant="bodyLarge" style={styles.subtitle}>
-            Describe your pain. Get a plan.
+          <Text variant="bodyLarge" style={styles.tagline}>
+            AI-powered guidance to help you move better and feel stronger. Describe your issue, get a personalized plan, and track your recovery.
           </Text>
         </View>
 
@@ -65,24 +62,20 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginTop: 80,
+    marginTop: 60,
+    paddingHorizontal: 16,
   },
   logo: {
-    width: 120,
-    height: 120,
-    marginBottom: 24,
+    width: 160,
+    height: 160,
+    marginBottom: 32,
   },
-  title: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    marginBottom: 12,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    color: '#8E8E93',
+  tagline: {
+    color: '#C7C7CC',
     textAlign: 'center',
     fontSize: 17,
-    lineHeight: 24,
+    lineHeight: 26,
+    maxWidth: 340,
   },
   spacer: {
     flex: 1,

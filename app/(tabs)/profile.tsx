@@ -53,8 +53,14 @@ export default function ProfileScreen() {
             {user?.email}
           </Text>
 
-          <View style={styles.subscriptionBadge}>
-            <Text variant="labelSmall" style={styles.subscriptionText}>
+          <View style={[
+            styles.subscriptionBadge,
+            user?.subscriptionStatus === 'active' && styles.subscriptionBadgeActive
+          ]}>
+            <Text variant="labelSmall" style={[
+              styles.subscriptionText,
+              user?.subscriptionStatus === 'active' && styles.subscriptionTextActive
+            ]}>
               {user?.subscriptionStatus === 'active' ? 'PREMIUM' : 'FREE PLAN'}
             </Text>
           </View>
@@ -200,18 +206,25 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   subscriptionBadge: {
-    backgroundColor: user?.subscriptionStatus === 'active' ? '#2C3E2F' : '#1C1C1E',
+    backgroundColor: '#1C1C1E',
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: user?.subscriptionStatus === 'active' ? '#66BB6A' : '#2C2C2E',
+    borderColor: '#2C2C2E',
+  },
+  subscriptionBadgeActive: {
+    backgroundColor: '#2C3E2F',
+    borderColor: '#66BB6A',
   },
   subscriptionText: {
-    color: user?.subscriptionStatus === 'active' ? '#66BB6A' : '#8E8E93',
+    color: '#8E8E93',
     fontWeight: '700',
     fontSize: 11,
     letterSpacing: 1,
+  },
+  subscriptionTextActive: {
+    color: '#66BB6A',
   },
   section: {
     marginBottom: 32,

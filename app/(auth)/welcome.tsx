@@ -10,7 +10,7 @@ export default function WelcomeScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <Image
-            source={require('../../misc/RecoverlyLogo.png')}
+            source={require('../../misc/RecoverlyLogoHD.png')}
             style={styles.logo}
             resizeMode="contain"
           />

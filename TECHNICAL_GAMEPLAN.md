@@ -100,12 +100,20 @@
   uid: string;              // Firebase Auth UID
   email: string;
   displayName: string;
+
+  // Subscription
   subscriptionStatus: 'free' | 'active' | 'cancelled' | 'expired';
   subscriptionTier: 'monthly' | 'annual' | null;
   stripeCustomerId: string;
   subscriptionEndDate: Timestamp;
+
+  // Timestamps
   createdAt: Timestamp;
   lastLoginAt: Timestamp;
+
+  // Note: Age, height, weight, activity level, equipment access removed for MVP
+  // These are not needed for bodyweight-only protocols
+  // Can be added in v2.0 for equipment-based personalization
 }
 ```
 
@@ -256,9 +264,43 @@
 **Red Flag Handling:**
 - If AI detects: severe pain, numbness, trauma, or other red flags:
   - Show warning screen BEFORE paywall
-  - "⚠️ Based on your symptoms, we strongly recommend consulting a healthcare professional"
-  - Provide option to exit or acknowledge and continue
+  - Block payment until acknowledged
   - Log red flag events for review
+
+---
+
+### Flow 1b: Red Flag Warning Screen (NEW)
+
+```
+⚠️ IMPORTANT: Consult a Professional
+
+Based on your symptoms, we strongly recommend
+consulting a licensed healthcare provider before
+starting any exercise program.
+
+Your symptoms may indicate:
+• Severe pain requiring medical evaluation
+• Potential injury needing professional assessment
+• Condition outside scope of general wellness guidance
+
+We detected:
+- [Red flag 1: e.g., "Severe pain (8/10)"]
+- [Red flag 2: e.g., "Recent trauma"]
+
+[Find a Healthcare Provider]
+[I Understand, Continue Anyway]
+
+If user continues:
+→ Show additional waiver/acknowledgment
+→ Log their decision
+→ Proceed to paywall (but with extra disclaimers)
+```
+
+**Implementation Notes:**
+- Red flag detection happens in AI response
+- This screen is NON-DISMISSIBLE without action
+- "Find a Healthcare Provider" could link to local PT finder or telehealth
+- Track red flag overrides for liability documentation
 
 ---
 
@@ -290,49 +332,263 @@
 
 ---
 
-### Flow 3: Condition Detail + Session Tracking
+### Flow 3: Condition Detail + Session Tracking (DETAILED)
 
+**Condition Detail Screen:**
 ```
-Condition Detail Screen:
-- Header: "LEFT KNEE PAIN"
-- Pain trend chart (line graph, past 2 weeks)
-- "Start Today's Session" button (primary CTA)
-
-When user taps "Start Today's Session":
-
-1. Pre-Session Pain Rating
-   - "Rate your pain right now (0-10)"
-   - Slider: 0 (No pain) → 10 (Worst pain)
-
-2. Exercise List
-   - Exercise 1: Cat-Cow Stretch
-     - GIF demonstration (auto-plays)
-     - "10 reps, 2 sets"
-     - "Move slowly, focus on spinal mobility"
-     - [✓ Mark Complete] button
-
-   - Exercise 2: Pelvic Tilt
-     - (same format)
-
-   - ... (5-7 exercises total)
-
-3. Post-Session Pain Rating
-   - "Rate your pain now (0-10)"
-   - Slider: 0 → 10
-
-4. Optional Notes
-   - "How did this session feel?" (text area)
-
-5. Submit
-   - Create sessionLog document
-   - Update condition stats
-   - Show completion animation
-   - Return to Dashboard
+┌─────────────────────────────────────┐
+│ ← Back to Dashboard                 │
+├─────────────────────────────────────┤
+│ LEFT KNEE PAIN                      │
+│ Day 5 of 14                         │
+│                                     │
+│ 📊 Pain Trend (Past 2 Weeks)       │
+│ [Line chart: 7→6→5→6→5]            │
+│                                     │
+│ ⭐⭐⭐ 3 sessions completed         │
+│ Next session due: Today             │
+│                                     │
+│ [Start Today's Session]             │
+│                                     │
+│ ────────────────────────────        │
+│                                     │
+│ 📋 Your Protocol                    │
+│ AI Summary: "Lower back mobility    │
+│ protocol focusing on spinal range   │
+│ of motion..."                       │
+│                                     │
+│ 🎯 Exercises (4)                    │
+│ • Cat-Cow Stretch                   │
+│ • Child's Pose                      │
+│ • Pelvic Tilts                      │
+│ • Glute Bridges                     │
+│ [View Details]                      │
+│                                     │
+│ 📅 Session History                  │
+│ [List of past sessions with dates]  │
+└─────────────────────────────────────┘
 ```
+
+**When user taps "Start Today's Session":**
+
+**Step 1: Pre-Session Pain Rating**
+```
+┌─────────────────────────────────────┐
+│ Session Check-In                    │
+├─────────────────────────────────────┤
+│ Before we start, how is your pain?  │
+│                                     │
+│ Rate your pain right now (0-10):    │
+│                                     │
+│ 0 ━━━━●━━━━━━ 10                   │
+│ No pain    Current: 5    Worst pain│
+│                                     │
+│ [Continue]                          │
+└─────────────────────────────────────┘
+```
+
+**Step 2: Exercise Flow (for each exercise)**
+```
+┌─────────────────────────────────────┐
+│ Exercise 1 of 4                     │
+├─────────────────────────────────────┤
+│ CAT-COW STRETCH                     │
+│                                     │
+│ [Auto-playing GIF from ExerciseDB]  │
+│                                     │
+│ 📺 [Watch Full Tutorial] ← YouTube  │
+│                                     │
+│ Instructions:                       │
+│ Start on hands and knees. Arch your │
+│ back (cow), then round it (cat).    │
+│ Move slowly and breathe deeply.     │
+│                                     │
+│ 2 sets × 10-12 reps                 │
+│                                     │
+│ [✓ Mark Complete]                   │
+│ [Skip This Exercise]                │
+└─────────────────────────────────────┘
+```
+
+**Dual Video Approach (User Choice):**
+- **GIF (ExerciseDB):** Auto-plays, always visible, quick reference
+- **"Watch Full Tutorial" button:** Opens YouTube embed for detailed explanation
+  - Shows channel name for attribution
+  - Can be full-screen
+  - User can pause/rewind
+  - Marketing opportunity: "This exercise explained by Bob & Brad PT"
+
+**Step 3: Post-Session Pain Rating**
+```
+┌─────────────────────────────────────┐
+│ How do you feel now?                │
+├─────────────────────────────────────┤
+│ You completed 4 of 4 exercises! 🎉  │
+│                                     │
+│ Rate your pain now (0-10):          │
+│                                     │
+│ 0 ━━━●━━━━━━━ 10                   │
+│ No pain    Current: 4    Worst pain│
+│                                     │
+│ Before: 5 → After: 4 ↓ Improving!  │
+│                                     │
+│ [Continue]                          │
+└─────────────────────────────────────┘
+```
+
+**Step 4: Optional Notes**
+```
+┌─────────────────────────────────────┐
+│ Session Notes (Optional)            │
+├─────────────────────────────────────┤
+│ How did this session feel?          │
+│                                     │
+│ ┌─────────────────────────────────┐ │
+│ │ [Text area for user notes]      │ │
+│ │                                 │ │
+│ │                                 │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│ [Skip]    [Complete Session]        │
+└─────────────────────────────────────┘
+```
+
+**Step 5: Completion**
+```
+┌─────────────────────────────────────┐
+│ ✨ Session Complete! ✨             │
+├─────────────────────────────────────┤
+│ Great work! You're on day 6 of 14.  │
+│                                     │
+│ Your pain improved from 5 → 4       │
+│                                     │
+│ Next session: Tomorrow              │
+│                                     │
+│ [Back to Dashboard]                 │
+└─────────────────────────────────────┘
+
+Then:
+- Create sessionLog in Firestore
+- Update condition stats (days completed, sessions count)
+- Show celebration animation
+- Return to dashboard
+```
+
+**Session Tracking Data Captured:**
+- Pre-pain score (0-10)
+- Post-pain score (0-10)
+- Exercises completed (array of IDs)
+- Optional user notes
+- Session number (for tracking streaks)
+- Timestamp
 
 ---
 
-### Flow 4: Weekly Adaptation (Background Logic)
+### Flow 4: 2-Week Check-In & Adaptation (NEW)
+
+**Trigger:** After 14 days (2 weeks) from protocol start
+
+**Check-In Screen:**
+```
+┌─────────────────────────────────────┐
+│ 2-Week Check-In                     │
+├─────────────────────────────────────┤
+│ You've been working on your         │
+│ LEFT KNEE PAIN protocol for 2 weeks │
+│                                     │
+│ 📊 Your Progress:                   │
+│ • 8 sessions completed              │
+│ • Pain: 7 → 4 (43% improvement)     │
+│ • Adherence: 80%                    │
+│                                     │
+│ How are you feeling overall?        │
+│                                     │
+│ [Much Better]                       │
+│ [Somewhat Better]                   │
+│ [No Change]                         │
+│ [Worse]                             │
+└─────────────────────────────────────┘
+```
+
+**Based on Response:**
+
+**If "Much Better" or "Somewhat Better":**
+```
+┌─────────────────────────────────────┐
+│ Great Progress! 🎉                  │
+├─────────────────────────────────────┤
+│ Your pain has improved significantly│
+│                                     │
+│ What would you like to do?          │
+│                                     │
+│ [Continue Current Plan]             │
+│ → Keep doing what's working         │
+│                                     │
+│ [Mark as Resolved]                  │
+│ → Move to completed protocols       │
+│                                     │
+│ [Get Advanced Exercises]            │
+│ → Progress to next level (Coming Soon) │
+└─────────────────────────────────────┘
+```
+
+**If "No Change":**
+```
+┌─────────────────────────────────────┐
+│ Let's Try Something Different       │
+├─────────────────────────────────────┤
+│ Your progress has plateaued. This   │
+│ happens sometimes!                  │
+│                                     │
+│ We recommend:                       │
+│                                     │
+│ [Get Modified Plan]                 │
+│ → AI generates variation with       │
+│   different exercises               │
+│                                     │
+│ [Consult a Professional]            │
+│ → May benefit from in-person PT     │
+│                                     │
+│ [Continue Anyway]                   │
+│ → Sometimes it takes longer         │
+└─────────────────────────────────────┘
+```
+
+**If "Worse":**
+```
+┌─────────────────────────────────────┐
+│ ⚠️ Let's Be Careful                 │
+├─────────────────────────────────────┤
+│ Your pain has worsened. This may    │
+│ indicate your condition needs       │
+│ professional evaluation.            │
+│                                     │
+│ We strongly recommend:              │
+│                                     │
+│ [Find a Healthcare Provider] ← Primary CTA │
+│                                     │
+│ [Pause This Protocol]               │
+│ → Stop exercises, rest              │
+│                                     │
+│ [Contact Support]                   │
+│ → Talk to our team                  │
+└─────────────────────────────────────┘
+```
+
+**Implementation:**
+- Trigger check-in via push notification on day 14
+- Lock further sessions until check-in completed
+- Log check-in responses for analytics
+- If "Modified Plan" selected, AI generates new protocol with:
+  - Different exercises targeting same area
+  - Adjusted volume
+  - Fresh approach
+
+---
+
+### Flow 5: Automated Adaptation (Background Logic - Optional)
+
+**Note:** This is supplementary to the user-driven 2-week check-in.
 
 ```
 Cloud Function runs weekly (Firebase Scheduled Functions):
@@ -346,23 +602,29 @@ For each active plan:
      - Pain trend (improving/stable/worsening)
      - Adherence rate (sessions completed / expected)
 
-  3. Adaptation logic:
-     IF pain improved by 2+ points:
-       → Increase reps by 20% OR add 1 set
-       → Log: "Progressed volume - pain improving"
+  3. Detection & Alerts (NO auto-modifications):
+     IF pain worsening by 2+ points:
+       → Push notification: "Your pain seems to be increasing. Let's check in."
+       → Trigger early check-in flow
 
-     ELSE IF pain stable (within 1 point):
-       → Swap 1-2 exercises for variations
-       → Log: "Swapped exercises - plateau detected"
+     ELSE IF low adherence (< 30%):
+       → Push notification: "We noticed you haven't been doing your sessions. Need help?"
+       → Offer modification or pause
 
-     ELSE IF pain worsening:
-       → Decrease volume OR flag for user review
-       → Push notification: "Let's adjust your plan"
+     ELSE IF great progress:
+       → Push notification: "Great work! Pain down 40%. Keep it up!"
+       → Positive reinforcement
 
-  4. Update rehabPlan document
+  4. Log insights for user dashboard
 
-  5. Send push notification (if changes made)
+  5. NO automatic exercise changes without user consent
 ```
+
+**Philosophy:**
+- User stays in control
+- AI provides insights, not automatic changes
+- Manual check-ins at 2-week intervals
+- Automated alerts only for concerning trends
 
 ---
 
@@ -406,8 +668,15 @@ For each active plan:
 **Frontend:**
 - [ ] Intake screen (free text input + chat UI)
 - [ ] Chat interface (Q&A with AI, ChatGPT-style minimal design)
+  - [ ] Hybrid input: multiple choice buttons + free text
+  - [ ] Typing indicator for AI responses
+  - [ ] Message history with user/AI differentiation
 - [ ] Protocol preview screen (shows exercise names before paywall)
-- [ ] Red flag warning screen (conditional, blocks payment if detected)
+- [ ] Red flag warning screen (NEW - critical)
+  - [ ] Non-dismissible warning
+  - [ ] Shows detected red flags
+  - [ ] "Find Healthcare Provider" link
+  - [ ] Log acknowledgment if user continues
 
 **Optional Exercise Visuals (can defer to post-MVP):**
 - [ ] ExerciseDB integration (GIFs for common exercises)
@@ -444,50 +713,101 @@ For each active plan:
 - [ ] Active conditions list view
 - [ ] Condition card component
   - Display: name, days completed, adherence, pain trend
+  - Show pain improvement (Before: 7 → After: 5 ↓)
+- [ ] Empty state: "No Protocols! Start New!"
 - [ ] Pull-to-refresh
 - [ ] "Add New Condition" flow (re-uses intake)
 
-**Condition Detail:**
+**Condition Detail Screen:**
+- [ ] Header with condition name and progress (Day X of 14)
 - [ ] Pain trend chart (Victory Native or react-native-chart-kit)
-- [ ] Session history list
+  - Line chart showing pain scores over time
+  - Color-coded: Green (improving), Yellow (stable), Red (worsening)
+- [ ] Protocol summary section
+  - AI-generated description
+  - Exercise list preview
+  - "View Details" expandable
+- [ ] Session history list with dates
 - [ ] "Start Session" button (primary CTA)
 
-**Session Tracking:**
-- [ ] Pre-pain rating screen
-- [ ] Exercise list with GIFs
-- [ ] Mark exercise complete (checkboxes)
-- [ ] Post-pain rating screen
-- [ ] Optional notes field
-- [ ] Submit session → create sessionLog
+**Session Tracking Flow (NEW - DETAILED):**
+- [ ] **Step 1:** Pre-pain rating screen
+  - Slider 0-10 with labels
+  - "No pain" → "Worst pain"
+- [ ] **Step 2:** Exercise flow (for each exercise)
+  - Exercise name and "X of Y" indicator
+  - **Dual Video Approach:**
+    - [ ] GIF from ExerciseDB (auto-playing, always visible)
+    - [ ] "Watch Full Tutorial" button → YouTube embed
+    - [ ] YouTube video shows channel name for attribution
+    - [ ] User can choose which to use
+  - Text instructions below
+  - Sets × Reps display
+  - [✓ Mark Complete] button
+  - [Skip This Exercise] option
+- [ ] **Step 3:** Post-pain rating screen
+  - Same slider UI
+  - Show comparison: "Before: 5 → After: 4 ↓"
+- [ ] **Step 4:** Optional notes field
+  - Text area: "How did this session feel?"
+  - [Skip] or [Complete Session]
+- [ ] **Step 5:** Completion screen
+  - Celebration message: "Great work!"
+  - Progress summary
+  - "Next session: Tomorrow"
+  - Return to dashboard
 
 **Progress Visualization:**
-- [ ] Line chart: pain scores over time
-- [ ] Session completion calendar/heatmap
+- [ ] Line chart: pain scores over time (past 2 weeks)
+- [ ] Session completion tracking
 - [ ] Adherence percentage badge
+- [ ] Pain improvement percentage
 
 ---
 
-### Phase 5: Adaptation + Notifications (Week 7-8)
+### Phase 5: Check-Ins + Notifications (Week 7-8)
 
-**Adaptation Logic:**
-- [ ] Cloud Function: `weeklyAdaptation` (scheduled)
-- [ ] Query sessionLogs for past 7 days per plan
-- [ ] Calculate pain trends
-- [ ] Update rehabPlan exercises based on rules
-- [ ] Log adaptations in `adaptationHistory`
+**2-Week Check-In System (NEW):**
+- [ ] Cloud Function: `triggerCheckIn` (scheduled daily)
+  - Check for plans reaching day 14
+  - Send push notification: "Time for your 2-week check-in!"
+- [ ] Check-in UI screens:
+  - [ ] Progress summary (sessions, pain improvement, adherence)
+  - [ ] "How are you feeling?" selection (Much Better/Somewhat Better/No Change/Worse)
+  - [ ] Response handlers for each path:
+    - **Much Better/Somewhat Better:**
+      - [ ] Continue plan or mark as resolved options
+      - [ ] Celebration messaging
+    - **No Change:**
+      - [ ] Offer modified plan generation (new AI call)
+      - [ ] Suggest professional consultation
+      - [ ] Continue anyway option
+    - **Worse:**
+      - [ ] Strong recommendation for professional help
+      - [ ] Pause protocol option
+      - [ ] Contact support option
+- [ ] Lock sessions until check-in completed (day 14+)
+- [ ] Log check-in responses for analytics
 
 **Push Notifications:**
 - [ ] Set up Firebase Cloud Messaging
 - [ ] Request notification permissions in app
-- [ ] Send reminders:
-  - Daily: "Time for your session" (if not completed today)
-  - Weekly: "Plan updated based on your progress"
-- [ ] Cloud Function: `sendReminders` (scheduled daily)
+- [ ] Notification types:
+  - [ ] Daily session reminder: "Time for your session!" (if not completed)
+  - [ ] 2-week check-in trigger: "Time to review your progress"
+  - [ ] Encouragement: "Great work! Pain down 40%"
+  - [ ] Concern alert: "Your pain seems to be increasing. Let's check in."
+  - [ ] Low adherence: "We miss you! Need help staying on track?"
+- [ ] Cloud Function: `sendNotifications` (scheduled daily)
 
-**Red Flag Monitoring:**
-- [ ] If user reports pain increase of 3+ points for 2 consecutive sessions:
-  - Push notification: "Your pain seems to be increasing. Consider consulting a professional."
-  - In-app banner with same message
+**Automated Monitoring (Background):**
+- [ ] Cloud Function: `monitorProgress` (scheduled weekly)
+- [ ] Detect concerning patterns:
+  - Pain worsening by 2+ points
+  - Low adherence (< 30%)
+  - No sessions in 7 days
+- [ ] Send alerts (NO automatic protocol changes)
+- [ ] Log insights for dashboard display
 
 ---
 
@@ -1067,7 +1387,7 @@ Before starting exercises:
 
 **Last Updated:** 2025-10-28
 
-**Version:** 2.0 (Updated for AI-Generated Protocols)
+**Version:** 2.1 (Refined Based on Wireframe Review)
 
 **Status:** In Active Development
 
@@ -1078,4 +1398,13 @@ Before starting exercises:
 - Reduced MVP timeline from 8-10 weeks to 6-8 weeks
 - Updated data models for AI-generated content
 - Added marketing partnership opportunities (YouTube PT channels)
+
+**Key Changes in v2.1 (Based on Wireframe Feedback):**
+- Removed equipment access and detailed user profile for MVP (bodyweight-only)
+- Added detailed red flag warning screen flow (critical safety feature)
+- Documented complete session tracking flow with dual video approach
+- Added 2-week check-in system with branching logic (Much Better/No Change/Worse)
+- Clarified user-driven adaptation vs. automated monitoring
+- Added hybrid AI conversation approach (multiple choice + free text)
+- Detailed exercise visual UX (GIF auto-play + YouTube "Watch Tutorial" button)
 

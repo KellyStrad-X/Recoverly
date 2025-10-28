@@ -1,0 +1,16 @@
+# Compiled JavaScript files
+lib/
+
+# Node modules
+node_modules/
+
+# Environment variables (NEVER commit this!)
+.env
+.env.local
+.env*.local
+
+# Firebase cache
+.firebase/
+
+# Logs
+*.log

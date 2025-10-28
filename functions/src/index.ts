@@ -4,10 +4,6 @@ import OpenAI from 'openai';
 
 admin.initializeApp();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -177,30 +173,39 @@ RESPONSE STYLE:
 - Be conservative - when in doubt, refer out
 - Include disclaimers naturally in conversation`;
 
-export const generateRecoveryProtocol = functions.https.onCall(
-  async (
-    data: GenerateProtocolRequest,
-    context: functions.https.CallableContext
-  ): Promise<GenerateProtocolResponse> => {
-    // Check authentication
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        'unauthenticated',
-        'User must be authenticated to generate recovery protocols.'
-      );
-    }
+export const generateRecoveryProtocol = functions
+  .runWith({
+    secrets: ['OPENAI_API_KEY'],
+  })
+  .https.onCall(
+    async (
+      data: GenerateProtocolRequest,
+      context: functions.https.CallableContext
+    ): Promise<GenerateProtocolResponse> => {
+      // Check authentication
+      if (!context.auth) {
+        throw new functions.https.HttpsError(
+          'unauthenticated',
+          'User must be authenticated to generate recovery protocols.'
+        );
+      }
 
-    const { userId, conversationHistory, userMessage } = data;
+      const { userId, conversationHistory, userMessage } = data;
 
-    // Verify user ID matches authenticated user
-    if (userId !== context.auth.uid) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'User ID does not match authenticated user.'
-      );
-    }
+      // Verify user ID matches authenticated user
+      if (userId !== context.auth.uid) {
+        throw new functions.https.HttpsError(
+          'permission-denied',
+          'User ID does not match authenticated user.'
+        );
+      }
 
-    try {
+      // Initialize OpenAI with secret
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      try {
       // Detect red flags in all conversation history
       const allText = [
         ...conversationHistory.map((m) => m.content),
@@ -261,13 +266,13 @@ export const generateRecoveryProtocol = functions.https.onCall(
         protocol,
         requiresPaywall,
       };
-    } catch (error: any) {
-      console.error('Error generating recovery protocol:', error);
-      throw new functions.https.HttpsError(
-        'internal',
-        'Failed to generate recovery protocol',
-        error.message
-      );
+      } catch (error: any) {
+        console.error('Error generating recovery protocol:', error);
+        throw new functions.https.HttpsError(
+          'internal',
+          'Failed to generate recovery protocol',
+          error.message
+        );
+      }
     }
-  }
-);
+  );

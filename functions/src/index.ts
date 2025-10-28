@@ -1,6 +1,10 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
+import { defineString } from 'firebase-functions/params';
 import * as admin from 'firebase-admin';
 import OpenAI from 'openai';
+
+// Define OpenAI API key as a parameter (reads from .env during deployment)
+const openaiApiKey = defineString('OPENAI_API_KEY');
 
 admin.initializeApp();
 
@@ -174,12 +178,11 @@ RESPONSE STYLE:
 - Include disclaimers naturally in conversation`;
 
 export const generateRecoveryProtocol = functions.https.onCall(
-  async (
-    data: GenerateProtocolRequest,
-    context: functions.https.CallableContext
-  ): Promise<GenerateProtocolResponse> => {
+  async (request): Promise<GenerateProtocolResponse> => {
+    const data = request.data as GenerateProtocolRequest;
+
     // Check authentication
-    if (!context.auth) {
+    if (!request.auth) {
       throw new functions.https.HttpsError(
         'unauthenticated',
         'User must be authenticated to generate recovery protocols.'
@@ -189,16 +192,16 @@ export const generateRecoveryProtocol = functions.https.onCall(
     const { userId, conversationHistory, userMessage } = data;
 
     // Verify user ID matches authenticated user
-    if (userId !== context.auth.uid) {
+    if (userId !== request.auth.uid) {
       throw new functions.https.HttpsError(
         'permission-denied',
         'User ID does not match authenticated user.'
       );
     }
 
-    // Initialize OpenAI with Firebase config
+    // Initialize OpenAI with parameter
     const openai = new OpenAI({
-      apiKey: functions.config().openai.api_key,
+      apiKey: openaiApiKey.value(),
     });
 
     try {

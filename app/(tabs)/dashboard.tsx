@@ -2,9 +2,11 @@ import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
 
   return (
@@ -32,10 +34,7 @@ export default function DashboardScreen() {
 
           <Button
             mode="contained"
-            onPress={() => {
-              // TODO: Navigate to intake flow in Phase 2
-              console.log('Start intake flow');
-            }}
+            onPress={() => router.push('/(intake)/chat')}
             style={styles.startButton}
             contentStyle={styles.buttonContent}
             labelStyle={styles.buttonLabel}

@@ -40,3 +40,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Firebase
+functions/node_modules/
+functions/lib/
+firebase-debug.log
+firebase-debug.*.log
+.firebase/

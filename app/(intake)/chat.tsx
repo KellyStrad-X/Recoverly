@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Text, IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
 import { generateRecoveryProtocol, type Message as AIMessage } from '@/services/aiService';
@@ -22,21 +22,25 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  quickReplies?: string[];
 }
 
 export default function ChatScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const user = useAuthStore((state) => state.user);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: "Hi! I'm here to help you create a personalized recovery plan. Can you describe what's bothering you? For example:\n\n• Where does it hurt?\n• When did it start?\n• What activities make it worse?",
+      content: "Hi! I'm here to help you create a personalized recovery plan. Where does it hurt?",
       timestamp: new Date(),
+      quickReplies: ['Knee', 'Back', 'Shoulder', 'Neck', 'Other'],
     },
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [initialMessageSent, setInitialMessageSent] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -48,23 +52,31 @@ export default function ChatScreen() {
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!inputText.trim() || !user) return;
+  // Auto-send initial message if provided from dashboard
+  useEffect(() => {
+    if (params.initialMessage && !initialMessageSent && user) {
+      const message = params.initialMessage as string;
+      setInitialMessageSent(true);
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: inputText.trim(),
-      timestamp: new Date(),
-    };
+      // Add user message to chat
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: message,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
 
-    setMessages((prev) => [...prev, userMessage]);
-    const currentInput = inputText.trim();
-    setInputText('');
-    setIsTyping(true);
+      // Send to AI
+      setIsTyping(true);
+      sendMessageToAI(message);
+    }
+  }, [params.initialMessage, initialMessageSent, user]);
+
+  const sendMessageToAI = async (messageContent: string) => {
+    if (!user) return;
 
     try {
-      // Build conversation history for AI
       const conversationHistory: AIMessage[] = messages
         .filter((m) => m.role === 'assistant' || m.role === 'user')
         .map((m) => ({
@@ -72,18 +84,15 @@ export default function ChatScreen() {
           content: m.content,
         }));
 
-      // Call Cloud Function
       const response = await generateRecoveryProtocol({
         userId: user.uid,
         conversationHistory,
-        userMessage: currentInput,
+        userMessage: messageContent,
       });
 
       setIsTyping(false);
 
-      // Handle red flags
       if (response.hasRedFlags && response.redFlags) {
-        // Navigate to red flag warning screen
         router.push({
           pathname: '/(intake)/red-flag-warning',
           params: {
@@ -93,9 +102,7 @@ export default function ChatScreen() {
         return;
       }
 
-      // Handle protocol generation (paywall)
       if (response.requiresPaywall && response.protocol) {
-        // Navigate to paywall screen with protocol preview
         router.push({
           pathname: '/(intake)/paywall',
           params: {
@@ -105,7 +112,6 @@ export default function ChatScreen() {
         return;
       }
 
-      // Handle conversational response
       if (response.aiMessage) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -125,36 +131,89 @@ export default function ChatScreen() {
     }
   };
 
+  const handleSend = async () => {
+    if (!inputText.trim() || !user) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: inputText.trim(),
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    const currentInput = inputText.trim();
+    setInputText('');
+    setIsTyping(true);
+
+    sendMessageToAI(currentInput);
+  };
+
+  const handleQuickReply = (reply: string) => {
+    if (!user) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: reply,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setIsTyping(true);
+
+    sendMessageToAI(reply);
+  };
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isUser = item.role === 'user';
+    const isLastMessage = messages[messages.length - 1].id === item.id;
+    const showQuickReplies = !isUser && item.quickReplies && isLastMessage && !isTyping;
 
     return (
-      <View
-        style={[
-          styles.messageContainer,
-          isUser ? styles.userMessageContainer : styles.aiMessageContainer,
-        ]}
-      >
-        {!isUser && (
-          <View style={styles.aiAvatar}>
-            <MaterialCommunityIcons name="robot" size={18} color="#66BB6A" />
-          </View>
-        )}
+      <View>
         <View
           style={[
-            styles.messageBubble,
-            isUser ? styles.userBubble : styles.aiBubble,
+            styles.messageContainer,
+            isUser ? styles.userMessageContainer : styles.aiMessageContainer,
           ]}
         >
-          <Text
+          {!isUser && (
+            <View style={styles.aiAvatar}>
+              <MaterialCommunityIcons name="robot" size={18} color="#66BB6A" />
+            </View>
+          )}
+          <View
             style={[
-              styles.messageText,
-              isUser ? styles.userText : styles.aiText,
+              styles.messageBubble,
+              isUser ? styles.userBubble : styles.aiBubble,
             ]}
           >
-            {item.content}
-          </Text>
+            <Text
+              style={[
+                styles.messageText,
+                isUser ? styles.userText : styles.aiText,
+              ]}
+            >
+              {item.content}
+            </Text>
+          </View>
         </View>
+
+        {/* Quick Reply Buttons */}
+        {showQuickReplies && (
+          <View style={styles.quickRepliesContainer}>
+            {item.quickReplies!.map((reply, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.quickReplyButton}
+                onPress={() => handleQuickReply(reply)}
+              >
+                <Text style={styles.quickReplyText}>{reply}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
     );
   };
@@ -179,28 +238,29 @@ export default function ChatScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor="#FFFFFF"
-          size={24}
-          onPress={() => router.back()}
-        />
-        <View style={styles.headerTitle}>
-          <Text style={styles.title}>Recovery Intake</Text>
-          <Text style={styles.subtitle}>Chat with AI</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={0}
+    >
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {/* Header */}
+        <View style={styles.header}>
+          <IconButton
+            icon="arrow-left"
+            iconColor="#FFFFFF"
+            size={24}
+            onPress={() => router.back()}
+          />
+          <View style={styles.headerTitle}>
+            <Text style={styles.title}>Recovery Intake</Text>
+            <Text style={styles.subtitle}>Chat with AI</Text>
+          </View>
+          <View style={{ width: 48 }} />
         </View>
-        <View style={{ width: 48 }} />
-      </View>
 
-      {/* Messages */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
+        {/* Messages */}
+        <View style={styles.messagesContainer}>
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -239,8 +299,9 @@ export default function ChatScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </View>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -271,7 +332,7 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     fontSize: 13,
   },
-  keyboardView: {
+  messagesContainer: {
     flex: 1,
   },
   messagesList: {
@@ -387,5 +448,28 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#2C2C2E',
+  },
+  quickRepliesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingLeft: 48,
+    paddingRight: 16,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  quickReplyButton: {
+    backgroundColor: '#2C2C2E',
+    borderWidth: 1,
+    borderColor: '#66BB6A',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  quickReplyText: {
+    color: '#66BB6A',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

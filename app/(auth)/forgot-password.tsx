@@ -12,11 +12,9 @@ export default function ForgotPasswordScreen() {
   const [success, setSuccess] = useState(false);
 
   const handleResetPassword = async () => {
-    // Reset states
     setError('');
     setSuccess(false);
 
-    // Validation
     if (!email) {
       setError('Please enter your email address');
       return;
@@ -51,11 +49,11 @@ export default function ForgotPasswordScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
-            <Text variant="displaySmall" style={styles.title}>
+            <Text variant="headlineLarge" style={styles.title}>
               Reset Password
             </Text>
             <Text variant="bodyLarge" style={styles.subtitle}>
-              Enter your email and we'll send you a link to reset your password
+              We'll send you a link to reset your password
             </Text>
           </View>
 
@@ -68,10 +66,14 @@ export default function ForgotPasswordScreen() {
                   onChangeText={setEmail}
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  mode="outlined"
+                  mode="flat"
                   style={styles.input}
                   error={!!error && !isValidEmail(email) && email.length > 0}
                   disabled={loading}
+                  textColor="#FFFFFF"
+                  underlineColor="transparent"
+                  activeUnderlineColor="transparent"
+                  theme={{ colors: { onSurfaceVariant: '#8E8E93' } }}
                 />
 
                 {error ? (
@@ -97,15 +99,14 @@ export default function ForgotPasswordScreen() {
                 <Text variant="headlineSmall" style={styles.successTitle}>
                   Check Your Email
                 </Text>
-                <Text variant="bodyLarge" style={styles.successMessage}>
-                  We've sent a password reset link to:
+                <Text variant="bodyMedium" style={styles.successMessage}>
+                  We've sent a password reset link to
                 </Text>
                 <Text variant="bodyLarge" style={styles.emailText}>
                   {email}
                 </Text>
                 <Text variant="bodyMedium" style={styles.successInstructions}>
-                  Click the link in the email to reset your password. If you don't see it, check
-                  your spam folder.
+                  Click the link in the email to reset your password. If you don't see it, check your spam folder.
                 </Text>
               </View>
             )}
@@ -115,6 +116,7 @@ export default function ForgotPasswordScreen() {
               onPress={handleBackToLogin}
               disabled={loading}
               style={styles.backButton}
+              labelStyle={styles.backButtonLabel}
             >
               ← Back to Login
             </Button>
@@ -128,83 +130,95 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#000000',
   },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
+    paddingTop: 60,
     paddingBottom: 40,
   },
   header: {
-    alignItems: 'center',
-    marginTop: 40,
     marginBottom: 40,
   },
   title: {
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontWeight: '700',
     marginBottom: 12,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    color: '#546E7A',
-    textAlign: 'center',
-    paddingHorizontal: 20,
+    color: '#8E8E93',
+    fontSize: 17,
+    lineHeight: 24,
   },
   form: {
     flex: 1,
   },
   input: {
     marginBottom: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    fontSize: 17,
   },
   errorText: {
     marginTop: -8,
     marginBottom: 8,
+    color: '#FF453A',
   },
   resetButton: {
-    borderRadius: 8,
+    borderRadius: 14,
     marginBottom: 24,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#66BB6A',
   },
   buttonContent: {
-    height: 48,
+    height: 56,
   },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
+    color: '#000000',
   },
   successContainer: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#1C1C1E',
     padding: 24,
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 32,
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
   },
   successTitle: {
-    color: '#2E7D32',
+    color: '#66BB6A',
     fontWeight: '600',
     marginBottom: 16,
+    textAlign: 'center',
   },
   successMessage: {
-    color: '#1B5E20',
+    color: '#C7C7CC',
     textAlign: 'center',
     marginBottom: 8,
   },
   emailText: {
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 16,
   },
   successInstructions: {
-    color: '#546E7A',
+    color: '#8E8E93',
     textAlign: 'center',
     lineHeight: 22,
+    fontSize: 15,
   },
   backButton: {
     alignSelf: 'center',
+    marginTop: 16,
+  },
+  backButtonLabel: {
+    color: '#8E8E93',
+    fontSize: 15,
   },
 });

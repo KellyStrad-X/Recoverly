@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Text, TextInput, Button, HelperText, Divider } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { Text, TextInput, Button, HelperText, IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { signInWithEmail, isValidEmail } from '@/services/authService';
@@ -67,11 +67,11 @@ export default function LoginScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
-            <Text variant="displaySmall" style={styles.title}>
+            <Text variant="headlineLarge" style={styles.title}>
               Welcome Back
             </Text>
             <Text variant="bodyLarge" style={styles.subtitle}>
-              Sign in to continue your recovery
+              Sign in to continue
             </Text>
           </View>
 
@@ -82,10 +82,14 @@ export default function LoginScreen() {
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
-              mode="outlined"
+              mode="flat"
               style={styles.input}
               error={!!error && !isValidEmail(email) && email.length > 0}
               disabled={loading}
+              textColor="#FFFFFF"
+              underlineColor="transparent"
+              activeUnderlineColor="transparent"
+              theme={{ colors: { onSurfaceVariant: '#8E8E93' } }}
             />
 
             <TextInput
@@ -93,14 +97,19 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
-              mode="outlined"
+              mode="flat"
               style={styles.input}
               error={!!error}
               disabled={loading}
+              textColor="#FFFFFF"
+              underlineColor="transparent"
+              activeUnderlineColor="transparent"
+              theme={{ colors: { onSurfaceVariant: '#8E8E93' } }}
               right={
                 <TextInput.Icon
                   icon={showPassword ? 'eye-off' : 'eye'}
                   onPress={() => setShowPassword(!showPassword)}
+                  color="#8E8E93"
                 />
               }
             />
@@ -116,6 +125,7 @@ export default function LoginScreen() {
               onPress={handleForgotPassword}
               style={styles.forgotButton}
               disabled={loading}
+              labelStyle={styles.forgotButtonLabel}
             >
               Forgot password?
             </Button>
@@ -132,35 +142,36 @@ export default function LoginScreen() {
               Sign In
             </Button>
 
-            <Divider style={styles.divider} />
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
 
-            <Button
-              mode="outlined"
-              icon="google"
-              onPress={() => {
-                // TODO: Implement Google OAuth in Phase 2
-                setError('Google sign-in coming soon');
-              }}
-              disabled={loading}
-              style={styles.googleButton}
-              contentStyle={styles.buttonContent}
-              labelStyle={styles.googleButtonLabel}
-            >
-              Continue with Google
-            </Button>
+            <View style={styles.socialContainer}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => {
+                  // TODO: Implement Google OAuth in Phase 2
+                  setError('Google sign-in coming soon');
+                }}
+                disabled={loading}
+              >
+                <IconButton
+                  icon="google"
+                  size={24}
+                  iconColor="#FFFFFF"
+                />
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.signupContainer}>
               <Text variant="bodyMedium" style={styles.signupText}>
                 Don't have an account?{' '}
               </Text>
-              <Button
-                mode="text"
-                onPress={handleSignUp}
-                disabled={loading}
-                style={styles.signupButton}
-              >
-                Sign Up
-              </Button>
+              <TouchableOpacity onPress={handleSignUp} disabled={loading}>
+                <Text style={styles.signupLink}>Sign Up</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -172,79 +183,108 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#000000',
   },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
+    paddingTop: 60,
     paddingBottom: 40,
   },
   header: {
-    alignItems: 'center',
-    marginTop: 40,
     marginBottom: 40,
   },
   title: {
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontWeight: '700',
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    color: '#546E7A',
-    textAlign: 'center',
+    color: '#8E8E93',
+    fontSize: 17,
   },
   form: {
     flex: 1,
   },
   input: {
     marginBottom: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    fontSize: 17,
   },
   errorText: {
     marginTop: -8,
     marginBottom: 8,
+    color: '#FF453A',
   },
   forgotButton: {
     alignSelf: 'flex-end',
     marginBottom: 24,
   },
+  forgotButtonLabel: {
+    color: '#66BB6A',
+    fontSize: 15,
+  },
   loginButton: {
-    borderRadius: 8,
+    borderRadius: 14,
     marginBottom: 24,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#66BB6A',
   },
   buttonContent: {
-    height: 48,
+    height: 56,
   },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
+    color: '#000000',
   },
-  divider: {
-    marginBottom: 24,
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
   },
-  googleButton: {
-    borderRadius: 8,
-    borderColor: '#E0E0E0',
-    marginBottom: 24,
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#2C2C2E',
   },
-  googleButtonLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1C1E',
+  dividerText: {
+    marginHorizontal: 16,
+    color: '#8E8E93',
+    fontSize: 15,
+  },
+  socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 32,
+  },
+  socialButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1C1C1E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#38383A',
   },
   signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 16,
   },
   signupText: {
-    color: '#546E7A',
+    color: '#8E8E93',
+    fontSize: 15,
   },
-  signupButton: {
-    marginLeft: -8,
+  signupLink: {
+    color: '#66BB6A',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

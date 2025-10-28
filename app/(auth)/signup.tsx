@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Text, TextInput, Button, HelperText, Divider, Checkbox } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { Text, TextInput, Button, HelperText, IconButton, Checkbox } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { signUpWithEmail, isValidEmail, isValidPassword } from '@/services/authService';
@@ -10,7 +10,6 @@ export default function SignUpScreen() {
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,11 +18,9 @@ export default function SignUpScreen() {
   const setUser = useAuthStore((state) => state.setUser);
 
   const handleSignUp = async () => {
-    // Reset error
     setError('');
 
-    // Validation
-    if (!displayName || !email || !password || !confirmPassword) {
+    if (!displayName || !email || !password) {
       setError('Please fill in all fields');
       return;
     }
@@ -43,13 +40,8 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
     if (!acceptedTerms) {
-      setError('Please accept the terms and conditions');
+      setError('Please accept the terms to continue');
       return;
     }
 
@@ -58,14 +50,12 @@ export default function SignUpScreen() {
     try {
       const userCredential = await signUpWithEmail(email, password, displayName);
 
-      // Update auth store
       setUser({
         uid: userCredential.user.uid,
         email: userCredential.user.email || '',
         displayName: displayName,
       });
 
-      // Navigate to welcome/intake flow
       router.replace('/(tabs)/dashboard');
     } catch (err: any) {
       setError(err.message);
@@ -86,11 +76,11 @@ export default function SignUpScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
-            <Text variant="displaySmall" style={styles.title}>
-              Start Your Recovery
+            <Text variant="headlineLarge" style={styles.title}>
+              Get Started
             </Text>
             <Text variant="bodyLarge" style={styles.subtitle}>
-              Create your account to get started
+              Create your account
             </Text>
           </View>
 
@@ -100,9 +90,13 @@ export default function SignUpScreen() {
               value={displayName}
               onChangeText={setDisplayName}
               autoCapitalize="words"
-              mode="outlined"
+              mode="flat"
               style={styles.input}
               disabled={loading}
+              textColor="#FFFFFF"
+              underlineColor="transparent"
+              activeUnderlineColor="transparent"
+              theme={{ colors: { onSurfaceVariant: '#8E8E93' } }}
             />
 
             <TextInput
@@ -111,10 +105,14 @@ export default function SignUpScreen() {
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
-              mode="outlined"
+              mode="flat"
               style={styles.input}
               error={!!error && !isValidEmail(email) && email.length > 0}
               disabled={loading}
+              textColor="#FFFFFF"
+              underlineColor="transparent"
+              activeUnderlineColor="transparent"
+              theme={{ colors: { onSurfaceVariant: '#8E8E93' } }}
             />
 
             <TextInput
@@ -122,31 +120,25 @@ export default function SignUpScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
-              mode="outlined"
+              mode="flat"
               style={styles.input}
               error={!!error && password.length > 0 && !isValidPassword(password)}
               disabled={loading}
+              textColor="#FFFFFF"
+              underlineColor="transparent"
+              activeUnderlineColor="transparent"
+              theme={{ colors: { onSurfaceVariant: '#8E8E93' } }}
               right={
                 <TextInput.Icon
                   icon={showPassword ? 'eye-off' : 'eye'}
                   onPress={() => setShowPassword(!showPassword)}
+                  color="#8E8E93"
                 />
               }
             />
             <HelperText type="info" visible={true} style={styles.helperText}>
               At least 6 characters
             </HelperText>
-
-            <TextInput
-              label="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showPassword}
-              mode="outlined"
-              style={styles.input}
-              error={!!error && confirmPassword.length > 0 && password !== confirmPassword}
-              disabled={loading}
-            />
 
             {error ? (
               <HelperText type="error" visible={!!error} style={styles.errorText}>
@@ -158,23 +150,14 @@ export default function SignUpScreen() {
               <Checkbox
                 status={acceptedTerms ? 'checked' : 'unchecked'}
                 onPress={() => setAcceptedTerms(!acceptedTerms)}
-                color="#2E7D32"
+                color="#66BB6A"
+                uncheckedColor="#8E8E93"
               />
-              <View style={styles.termsTextContainer}>
+              <TouchableOpacity onPress={() => setAcceptedTerms(!acceptedTerms)} style={styles.termsTextContainer}>
                 <Text variant="bodySmall" style={styles.termsText}>
-                  I accept the{' '}
-                  <Text style={styles.termsLink}>Terms of Service</Text>
-                  {' '}and{' '}
-                  <Text style={styles.termsLink}>Privacy Policy</Text>
+                  I accept the terms and understand this is general wellness guidance, not medical advice
                 </Text>
-              </View>
-            </View>
-
-            <View style={styles.disclaimerContainer}>
-              <Text variant="bodySmall" style={styles.disclaimerText}>
-                ⚠️ Recoverly provides general wellness guidance only and is not a substitute for
-                professional medical advice.
-              </Text>
+              </TouchableOpacity>
             </View>
 
             <Button
@@ -189,30 +172,35 @@ export default function SignUpScreen() {
               Create Account
             </Button>
 
-            <Divider style={styles.divider} />
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
 
-            <Button
-              mode="outlined"
-              icon="google"
-              onPress={() => {
-                // TODO: Implement Google OAuth in Phase 2
-                setError('Google sign-up coming soon');
-              }}
-              disabled={loading}
-              style={styles.googleButton}
-              contentStyle={styles.buttonContent}
-              labelStyle={styles.googleButtonLabel}
-            >
-              Sign up with Google
-            </Button>
+            <View style={styles.socialContainer}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => {
+                  setError('Google sign-up coming soon');
+                }}
+                disabled={loading}
+              >
+                <IconButton
+                  icon="google"
+                  size={24}
+                  iconColor="#FFFFFF"
+                />
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.loginContainer}>
               <Text variant="bodyMedium" style={styles.loginText}>
                 Already have an account?{' '}
               </Text>
-              <Button mode="text" onPress={handleLogin} disabled={loading} style={styles.loginButton}>
-                Sign In
-              </Button>
+              <TouchableOpacity onPress={handleLogin} disabled={loading}>
+                <Text style={styles.loginLink}>Sign In</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -224,108 +212,121 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#000000',
   },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
+    paddingTop: 60,
     paddingBottom: 40,
   },
   header: {
-    alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 32,
+    marginBottom: 40,
   },
   title: {
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontWeight: '700',
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    color: '#546E7A',
-    textAlign: 'center',
+    color: '#8E8E93',
+    fontSize: 17,
   },
   form: {
     flex: 1,
   },
   input: {
-    marginBottom: 4,
-    backgroundColor: '#FFFFFF',
+    marginBottom: 16,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    fontSize: 17,
   },
   helperText: {
-    marginTop: -4,
+    marginTop: -8,
     marginBottom: 8,
+    color: '#8E8E93',
   },
   errorText: {
+    marginTop: -8,
     marginBottom: 8,
+    color: '#FF453A',
   },
   termsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginTop: 8,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   termsTextContainer: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: -8,
+    marginTop: 8,
   },
   termsText: {
-    color: '#546E7A',
-    lineHeight: 20,
-  },
-  termsLink: {
-    color: '#2E7D32',
-    textDecorationLine: 'underline',
-  },
-  disclaimerContainer: {
-    backgroundColor: '#FFF3E0',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF9800',
-  },
-  disclaimerText: {
-    color: '#E65100',
+    color: '#8E8E93',
+    fontSize: 13,
     lineHeight: 18,
   },
   signupButton: {
-    borderRadius: 8,
+    borderRadius: 14,
     marginBottom: 24,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#66BB6A',
   },
   buttonContent: {
-    height: 48,
+    height: 56,
   },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
+    color: '#000000',
   },
-  divider: {
-    marginBottom: 24,
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
   },
-  googleButton: {
-    borderRadius: 8,
-    borderColor: '#E0E0E0',
-    marginBottom: 24,
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#2C2C2E',
   },
-  googleButtonLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1C1E',
+  dividerText: {
+    marginHorizontal: 16,
+    color: '#8E8E93',
+    fontSize: 15,
+  },
+  socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 32,
+  },
+  socialButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1C1C1E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#38383A',
   },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 16,
   },
   loginText: {
-    color: '#546E7A',
+    color: '#8E8E93',
+    fontSize: 15,
   },
-  loginButton: {
-    marginLeft: -8,
+  loginLink: {
+    color: '#66BB6A',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

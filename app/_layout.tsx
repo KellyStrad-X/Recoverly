@@ -13,64 +13,54 @@ import { getUserProfile } from '@/services/authService';
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
-// Custom theme colors - minimalist, clinical but modern
-const lightColors = {
-  primary: '#2E7D32', // Professional green
-  onPrimary: '#FFFFFF',
-  primaryContainer: '#C8E6C9',
-  onPrimaryContainer: '#00210B',
-  secondary: '#546E7A',
+// Dark minimalist theme - Apple Fitness / Opal inspired
+const darkColors = {
+  primary: '#66BB6A', // Muted green
+  onPrimary: '#000000',
+  primaryContainer: '#2C3E2F',
+  onPrimaryContainer: '#B8E7BC',
+  secondary: '#8E8E93', // iOS secondary gray
   onSecondary: '#FFFFFF',
-  secondaryContainer: '#CFD8DC',
-  onSecondaryContainer: '#001F2A',
-  tertiary: '#FF6B35',
-  onTertiary: '#FFFFFF',
-  tertiaryContainer: '#FFDBCF',
-  onTertiaryContainer: '#341100',
-  error: '#BA1A1A',
-  onError: '#FFFFFF',
-  errorContainer: '#FFDAD6',
-  onErrorContainer: '#410002',
-  background: '#FAFAFA',
-  onBackground: '#1A1C1E',
-  surface: '#FFFFFF',
-  onSurface: '#1A1C1E',
-  surfaceVariant: '#F5F5F5',
-  onSurfaceVariant: '#424242',
-  outline: '#E0E0E0',
-  outlineVariant: '#F5F5F5',
+  secondaryContainer: '#2C2C2E',
+  onSecondaryContainer: '#E5E5EA',
+  tertiary: '#FF9F0A', // Warning orange
+  onTertiary: '#000000',
+  tertiaryContainer: '#3D2C1E',
+  onTertiaryContainer: '#FFD59E',
+  error: '#FF453A', // iOS red
+  onError: '#000000',
+  errorContainer: '#3D1F1D',
+  onErrorContainer: '#FFB4AB',
+  background: '#000000', // Pure black for OLED
+  onBackground: '#FFFFFF',
+  surface: '#1C1C1E', // Apple's dark surface
+  onSurface: '#FFFFFF',
+  surfaceVariant: '#2C2C2E',
+  onSurfaceVariant: '#C7C7CC',
+  outline: '#38383A', // Subtle borders
+  outlineVariant: '#2C2C2E',
   shadow: '#000000',
   scrim: '#000000',
-  inverseSurface: '#2F3133',
-  inverseOnSurface: '#F0F0F3',
-  inversePrimary: '#81C784',
+  inverseSurface: '#F2F2F7',
+  inverseOnSurface: '#000000',
+  inversePrimary: '#4CAF50',
   elevation: {
     level0: 'transparent',
-    level1: '#FFFFFF',
-    level2: '#FAFAFA',
-    level3: '#F5F5F5',
-    level4: '#F0F0F0',
-    level5: '#EBEBEB',
+    level1: '#1C1C1E',
+    level2: '#2C2C2E',
+    level3: '#38383A',
+    level4: '#3A3A3C',
+    level5: '#48484A',
   },
-  surfaceDisabled: 'rgba(26, 28, 30, 0.12)',
-  onSurfaceDisabled: 'rgba(26, 28, 30, 0.38)',
-  backdrop: 'rgba(44, 49, 55, 0.4)',
-};
-
-const darkColors = {
-  ...lightColors,
-  // We'll keep it light theme only for MVP
-  // Can add dark theme support later
-};
-
-const lightTheme = {
-  ...MD3LightTheme,
-  colors: lightColors,
+  surfaceDisabled: 'rgba(255, 255, 255, 0.12)',
+  onSurfaceDisabled: 'rgba(255, 255, 255, 0.38)',
+  backdrop: 'rgba(0, 0, 0, 0.7)',
 };
 
 const darkTheme = {
   ...MD3DarkTheme,
   colors: darkColors,
+  dark: true,
 };
 
 function useProtectedRoute(user: any, initializing: boolean) {
@@ -94,8 +84,8 @@ function useProtectedRoute(user: any, initializing: boolean) {
 }
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
+  // Always use dark theme for MVP
+  const theme = darkTheme;
   const [initializing, setInitializing] = useState(true);
 
   const user = useAuthStore((state) => state.user);
@@ -137,9 +127,9 @@ export default function RootLayout() {
   if (initializing) {
     return (
       <SafeAreaProvider>
-        <PaperProvider theme={lightTheme}>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAFAFA' }}>
-            <ActivityIndicator size="large" color={lightTheme.colors.primary} />
+        <PaperProvider theme={theme}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         </PaperProvider>
       </SafeAreaProvider>
@@ -148,19 +138,19 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <PaperProvider theme={lightTheme}>
-        <StatusBar style="auto" />
+      <PaperProvider theme={theme}>
+        <StatusBar style="light" />
         <Stack
           screenOptions={{
             headerStyle: {
-              backgroundColor: lightTheme.colors.background,
+              backgroundColor: theme.colors.background,
             },
-            headerTintColor: lightTheme.colors.onBackground,
+            headerTintColor: theme.colors.onBackground,
             headerTitleStyle: {
               fontWeight: '600',
             },
             contentStyle: {
-              backgroundColor: lightTheme.colors.background,
+              backgroundColor: theme.colors.background,
             },
           }}
         >

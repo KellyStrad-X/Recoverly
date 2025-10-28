@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Button, Surface } from 'react-native-paper';
+import { Text, Button } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -8,23 +8,26 @@ export default function DashboardScreen() {
   const user = useAuthStore((state) => state.user);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text variant="headlineMedium" style={styles.greeting}>
-            Welcome, {user?.displayName || 'User'}!
+            Hi, {user?.displayName?.split(' ')[0] || 'there'}
           </Text>
-          <Text variant="bodyLarge" style={styles.subtitle}>
-            Your recovery dashboard
+          <Text variant="bodyMedium" style={styles.subtitle}>
+            Ready to start your recovery?
           </Text>
         </View>
 
-        <Surface style={styles.card} elevation={0}>
-          <Text variant="titleLarge" style={styles.cardTitle}>
-            No Active Conditions
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconContainer}>
+            <Text style={styles.emptyIcon}>💪</Text>
+          </View>
+          <Text variant="titleLarge" style={styles.emptyTitle}>
+            No Active Protocols
           </Text>
-          <Text variant="bodyMedium" style={styles.cardDescription}>
-            Start your recovery journey by describing your pain or movement issue.
+          <Text variant="bodyMedium" style={styles.emptyDescription}>
+            Describe your pain or movement issue to get started with a personalized recovery plan.
           </Text>
 
           <Button
@@ -37,14 +40,8 @@ export default function DashboardScreen() {
             contentStyle={styles.buttonContent}
             labelStyle={styles.buttonLabel}
           >
-            + Add New Condition
+            Start New Protocol
           </Button>
-        </Surface>
-
-        <View style={styles.infoContainer}>
-          <Text variant="bodySmall" style={styles.infoText}>
-            💡 Tip: You can track multiple conditions at once
-          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -54,63 +51,70 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#000000',
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingBottom: 40,
   },
   header: {
     marginTop: 24,
-    marginBottom: 24,
+    marginBottom: 40,
   },
   greeting: {
-    color: '#1A1C1E',
+    color: '#FFFFFF',
     fontWeight: '700',
     marginBottom: 4,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    color: '#546E7A',
+    color: '#8E8E93',
+    fontSize: 17,
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 24,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    marginTop: 60,
   },
-  cardTitle: {
-    color: '#1A1C1E',
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  cardDescription: {
-    color: '#546E7A',
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#1C1C1E',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 24,
+  },
+  emptyIcon: {
+    fontSize: 40,
+  },
+  emptyTitle: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  emptyDescription: {
+    color: '#8E8E93',
+    textAlign: 'center',
     lineHeight: 22,
+    marginBottom: 32,
+    fontSize: 15,
   },
   startButton: {
-    borderRadius: 8,
-    backgroundColor: '#2E7D32',
+    borderRadius: 14,
+    backgroundColor: '#66BB6A',
+    minWidth: 200,
   },
   buttonContent: {
-    height: 48,
+    height: 56,
   },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-  },
-  infoContainer: {
-    backgroundColor: '#E3F2FD',
-    padding: 16,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#1976D2',
-  },
-  infoText: {
-    color: '#0D47A1',
-    lineHeight: 18,
+    color: '#000000',
   },
 });

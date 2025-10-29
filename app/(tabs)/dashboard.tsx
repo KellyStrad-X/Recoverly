@@ -276,11 +276,15 @@ export default function DashboardScreen() {
       {/* Dashboard Content */}
       {!isChatExpanded && (
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'position' : 'height'}
           style={styles.keyboardAvoid}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          keyboardVerticalOffset={0}
         >
-          <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            scrollEnabled={false}
+          >
             <View style={styles.header}>
               <Text variant="headlineMedium" style={styles.greeting}>
                 Hi, {user?.displayName?.split(' ')[0] || 'there'}

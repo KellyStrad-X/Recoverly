@@ -329,9 +329,31 @@ export default function ChatScreen() {
         {/* Input Bar */}
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
+            {/* TextInput with padding for mic button */}
+            <TextInput
+              style={[styles.input, {paddingLeft: 44}]}  // Add padding for mic button space
+              placeholder={isRecording ? "Listening..." : "Describe your pain or issue..."}
+              placeholderTextColor="#8E8E93"
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
+              editable={!isRecording}
+            />
+
+            {/* Mic button with absolute positioning */}
             <TouchableOpacity
-              style={[styles.micButton, isRecording && styles.micButtonRecording]}
+              style={[
+                styles.micButton,
+                isRecording && styles.micButtonRecording,
+                {
+                  position: 'absolute',
+                  left: 12,
+                  bottom: 8,
+                }
+              ]}
               onPress={handleMicPress}
+              activeOpacity={0.7}
             >
               <MaterialCommunityIcons
                 name={isRecording ? "microphone" : "microphone-outline"}
@@ -339,25 +361,21 @@ export default function ChatScreen() {
                 color="#FFFFFF"
               />
             </TouchableOpacity>
-            <View style={{ flex: 1, marginHorizontal: 8 }}>
-              <TextInput
-                style={styles.input}
-                placeholder={isRecording ? "Listening..." : "Describe your pain or issue..."}
-                placeholderTextColor="#8E8E93"
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                maxLength={500}
-                editable={!isRecording}
-              />
-            </View>
+
+            {/* Send button with absolute positioning */}
             <TouchableOpacity
               style={[
                 styles.sendButton,
                 !inputText.trim() && styles.sendButtonDisabled,
+                {
+                  position: 'absolute',
+                  right: 12,
+                  bottom: 8,
+                }
               ]}
               onPress={handleSend}
               disabled={!inputText.trim() || isRecording}
+              activeOpacity={0.7}
             >
               <MaterialCommunityIcons
                 name="send"
@@ -491,33 +509,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    position: 'relative',  // Important for absolute positioning of children
     backgroundColor: '#1C1C1E',
     borderRadius: 24,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 8,
+    minHeight: 52,
   },
   input: {
-    width: '100%',
+    flex: 1,
     color: '#FFFFFF',
     fontSize: 16,
     maxHeight: 100,
     paddingVertical: 8,
+    paddingRight: 44,  // Space for send button
   },
   micButton: {
-    minWidth: 36,
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FF0000',  // Bright red for visibility
+    backgroundColor: '#3A3A3C',  // Subtle gray that matches the theme
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 0,
-    marginRight: 8,
+    elevation: 2,  // Android shadow
+    shadowColor: '#000',  // iOS shadow
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    zIndex: 10,  // Ensure it's above other elements
   },
   micButtonRecording: {
-    backgroundColor: '#00FF00',  // Green when recording
+    backgroundColor: '#FF3B30',  // Red when recording (iOS system red)
   },
   sendButton: {
     width: 36,
@@ -526,7 +548,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#66BB6A',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
+    elevation: 2,  // Android shadow
+    shadowColor: '#000',  // iOS shadow
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    zIndex: 10,  // Ensure it's above other elements
   },
   sendButtonDisabled: {
     backgroundColor: '#2C2C2E',

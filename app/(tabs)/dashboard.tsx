@@ -331,7 +331,7 @@ export default function DashboardScreen() {
             <View style={styles.emptyState}>
               <View style={styles.emptyIconContainer}>
                 <Image
-                  source={require('@/assets/icon.png')}
+                  source={require('../../assets/icon.png')}
                   style={styles.logoImage}
                   resizeMode="contain"
                 />

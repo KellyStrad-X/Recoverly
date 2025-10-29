@@ -84,43 +84,81 @@ export const searchYouTubeVideo = async (
     return null;
   }
 
-  try {
-    // Build search query - add "physical therapy" for better results
-    const searchQuery = `${exerciseName} physical therapy exercise tutorial`;
+  // Debug: Verify API key is loaded (show only first 10 chars for security)
+  console.log('YouTube API Key status:', YOUTUBE_API_KEY ? `Configured (${YOUTUBE_API_KEY.substring(0, 10)}...)` : 'Missing');
 
-    const response = await fetch(
-      `${YOUTUBE_BASE_URL}/search?` +
-        new URLSearchParams({
-          part: 'snippet',
-          q: searchQuery,
-          type: 'video',
-          maxResults: '1',
-          videoDuration: 'short', // Prefer short videos (< 4 min)
-          videoEmbeddable: 'true',
-          key: YOUTUBE_API_KEY,
-        })
-    );
+  // Build search query - add "physical therapy" for better results
+  const searchQuery = `${exerciseName} physical therapy exercise tutorial`;
 
-    if (!response.ok) {
-      console.error('YouTube API error:', response.status);
-      return null;
+  // Try with full filters first, fall back to basic search if that fails
+  const searchConfigs = [
+    {
+      name: 'full',
+      params: {
+        part: 'snippet',
+        q: searchQuery,
+        type: 'video',
+        maxResults: '1',
+        videoDuration: 'short', // Prefer short videos (< 4 min)
+        videoEmbeddable: 'true',
+        key: YOUTUBE_API_KEY,
+      },
+    },
+    {
+      name: 'basic',
+      params: {
+        part: 'snippet',
+        q: searchQuery,
+        type: 'video',
+        maxResults: '1',
+        key: YOUTUBE_API_KEY,
+      },
+    },
+  ];
+
+  for (const config of searchConfigs) {
+    try {
+      const params = new URLSearchParams(config.params);
+      const requestUrl = `${YOUTUBE_BASE_URL}/search?${params}`;
+
+      // Debug: Log request (hide API key)
+      const debugParams = new URLSearchParams(params);
+      debugParams.set('key', '[HIDDEN]');
+      console.log(`YouTube request (${config.name}):`, `${YOUTUBE_BASE_URL}/search?${debugParams}`);
+
+      const response = await fetch(requestUrl);
+
+      if (!response.ok) {
+        // Get detailed error message from YouTube
+        const errorData = await response.json().catch(() => null);
+        console.error(`YouTube API error (${config.name}):`, response.status);
+        console.error('YouTube error details:', JSON.stringify(errorData, null, 2));
+
+        // Try next config
+        continue;
+      }
+
+      const data = await response.json();
+
+      if (data.items && data.items.length > 0) {
+        const firstResult = data.items[0];
+        console.log(`✅ YouTube success with ${config.name} config`);
+        return {
+          videoId: firstResult.id.videoId,
+          title: firstResult.snippet.title,
+        };
+      }
+
+      console.log(`No results with ${config.name} config, trying next...`);
+    } catch (error) {
+      console.error(`Error with ${config.name} config:`, error);
+      // Try next config
     }
-
-    const data = await response.json();
-
-    if (data.items && data.items.length > 0) {
-      const firstResult = data.items[0];
-      return {
-        videoId: firstResult.id.videoId,
-        title: firstResult.snippet.title,
-      };
-    }
-
-    return null;
-  } catch (error) {
-    console.error('Error searching YouTube:', error);
-    return null;
   }
+
+  // All configs failed
+  console.error('All YouTube search configs failed');
+  return null;
 };
 
 /**

@@ -27,6 +27,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+// Carousel constants
+const CARD_HEIGHT = 100;
+const CARD_SPACING = 16;
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -59,11 +63,14 @@ export default function DashboardScreen() {
   const [activePlans, setActivePlans] = useState<RehabPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const flatListRef = useRef<FlatList>(null);
+  const carouselRef = useRef<FlatList>(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // Animation values
   const chatOpacity = useRef(new Animated.Value(0)).current;
   const headerOpacity = useRef(new Animated.Value(1)).current;
   const logoTranslateY = useRef(new Animated.Value(0)).current;
+  const dashboardContentOpacity = useRef(new Animated.Value(1)).current;
 
   // Keyboard visibility listeners
   useEffect(() => {
@@ -72,9 +79,14 @@ export default function DashboardScreen() {
       () => {
         if (!isChatExpanded) {
           setIsKeyboardVisible(true);
-          // Fade out header and slide up logo
+          // Fade out header, dashboard content, and slide up logo
           Animated.parallel([
             Animated.timing(headerOpacity, {
+              toValue: 0,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(dashboardContentOpacity, {
               toValue: 0,
               duration: 200,
               useNativeDriver: true,
@@ -94,9 +106,14 @@ export default function DashboardScreen() {
       () => {
         if (!isChatExpanded) {
           setIsKeyboardVisible(false);
-          // Fade in header and slide down logo
+          // Fade in header, dashboard content, and slide down logo
           Animated.parallel([
             Animated.timing(headerOpacity, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(dashboardContentOpacity, {
               toValue: 1,
               duration: 200,
               useNativeDriver: true,
@@ -332,6 +349,66 @@ export default function DashboardScreen() {
     }
   };
 
+  const renderPlanCard = ({ item, index }: { item: RehabPlan; index: number }) => {
+    // Calculate opacity based on scroll position for fade effect
+    const inputRange = [
+      (index - 1) * (CARD_HEIGHT + CARD_SPACING),
+      index * (CARD_HEIGHT + CARD_SPACING),
+      (index + 1) * (CARD_HEIGHT + CARD_SPACING),
+    ];
+
+    const opacity = scrollY.interpolate({
+      inputRange,
+      outputRange: [0.3, 1, 0.3],
+      extrapolate: 'clamp',
+    });
+
+    const scale = scrollY.interpolate({
+      inputRange,
+      outputRange: [0.95, 1, 0.95],
+      extrapolate: 'clamp',
+    });
+
+    // Calculate progress percentage
+    const progressPercentage = item.sessionsCompleted > 0
+      ? Math.round((item.sessionsCompleted / (item.sessionsCompleted + 1)) * 100)
+      : 0;
+
+    return (
+      <Animated.View
+        style={[
+          styles.carouselCardWrapper,
+          {
+            opacity,
+            transform: [{ scale }],
+          },
+        ]}
+      >
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => router.push(`/plan/${item.id}`)}
+          style={styles.carouselCard}
+        >
+          <View style={styles.carouselCardContent}>
+            <View style={styles.carouselCardLeft}>
+              <Text style={styles.carouselCardTitle}>
+                {item.aiGeneratedLabel || item.protocolName}
+              </Text>
+              <Text style={styles.carouselCardSubtitle}>
+                Day {item.currentDay + 1} • {item.sessionsCompleted} sessions
+              </Text>
+            </View>
+
+            {/* Placeholder circular progress */}
+            <View style={styles.circularProgress}>
+              <Text style={styles.circularProgressText}>{progressPercentage}%</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isUser = item.role === 'user';
     const isLastMessage = messages[messages.length - 1].id === item.id;
@@ -472,12 +549,25 @@ export default function DashboardScreen() {
             scrollEnabled={false}
           >
             <Animated.View style={[styles.header, { opacity: headerOpacity }]}>
-              <Text variant="headlineMedium" style={styles.greeting}>
-                Hi, {user?.displayName?.split(' ')[0] || 'there'}
-              </Text>
-              <Text variant="bodyMedium" style={styles.subtitle}>
-                Ready to start your recovery?
-              </Text>
+              <View style={styles.headerContent}>
+                <View>
+                  <Text variant="headlineMedium" style={styles.greeting}>
+                    Hi, {user?.displayName?.split(' ')[0] || 'there'}
+                  </Text>
+                  <Text variant="bodyMedium" style={styles.subtitle}>
+                    Ready to start your recovery?
+                  </Text>
+                </View>
+
+                {/* Small logo - only show when plans exist */}
+                {!loadingPlans && activePlans.length > 0 && (
+                  <Image
+                    source={require('../../misc/RecoverlyLogoHD.png')}
+                    style={styles.smallLogo}
+                    resizeMode="contain"
+                  />
+                )}
+              </View>
             </Animated.View>
 
             {/* Loading State */}
@@ -488,57 +578,36 @@ export default function DashboardScreen() {
               </View>
             )}
 
-            {/* Active Plans - Glass Cards with Roll Deck */}
+            {/* Vertical Carousel - Active Plans */}
             {!loadingPlans && activePlans.length > 0 && (
-              <View style={styles.plansContainer}>
-                {activePlans.slice(0, 3).map((plan, index) => (
-                  <TouchableOpacity
-                    key={plan.id}
-                    activeOpacity={0.9}
-                    onPress={() => router.push(`/plan/${plan.id}`)}
-                    style={[
-                      styles.planCardWrapper,
-                      index > 0 && {
-                        position: 'absolute',
-                        top: index * -8,
-                        left: 0,
-                        right: 0,
-                        zIndex: activePlans.length - index,
-                        transform: [{ scale: 1 - index * 0.04 }],
-                      },
-                    ]}
-                  >
-                    <LinearGradient
-                      colors={[
-                        `rgba(102, 187, 106, ${0.12 + index * 0.06})`,
-                        `rgba(102, 187, 106, ${0.08 + index * 0.08})`,
-                      ]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 0, y: 1 }}
-                      style={styles.planCardGradient}
-                    >
-                      <View style={styles.planCardContent}>
-                        <Text style={styles.planCardTitle}>{plan.protocolName}</Text>
-                        <Text style={styles.planCardLabel}>
-                          Day {plan.currentDay + 1} of {plan.duration}
-                        </Text>
-                        <View style={styles.planCardStats}>
-                          <View style={styles.planCardStat}>
-                            <MaterialCommunityIcons
-                              name="star"
-                              size={16}
-                              color="#66BB6A"
-                            />
-                            <Text style={styles.planCardStatText}>
-                              {plan.sessionsCompleted} sessions
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <Animated.View style={{ opacity: dashboardContentOpacity }}>
+                <View style={styles.carouselContainer}>
+                  <Animated.FlatList
+                    ref={carouselRef}
+                    data={activePlans}
+                    renderItem={renderPlanCard}
+                    keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
+                    snapToInterval={CARD_HEIGHT + CARD_SPACING}
+                    decelerationRate="normal"
+                    snapToAlignment="center"
+                    contentContainerStyle={{
+                      paddingVertical: SCREEN_HEIGHT / 8,
+                    }}
+                    onScroll={Animated.event(
+                      [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                      { useNativeDriver: true }
+                    )}
+                    scrollEventThrottle={16}
+                  />
+                </View>
+
+                {/* Placeholder Section */}
+                <View style={styles.placeholderSection}>
+                  <Text style={styles.placeholderTitle}>Progress & Insights</Text>
+                  <Text style={styles.placeholderText}>Coming Soon</Text>
+                </View>
+              </Animated.View>
             )}
 
             {/* Empty State - No Plans */}
@@ -995,55 +1064,93 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginTop: 16,
   },
-  plansContainer: {
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    position: 'relative',
-    minHeight: 200,
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  planCardWrapper: {
-    width: '100%',
+  smallLogo: {
+    width: 40,
+    height: 40,
+  },
+  // Vertical Carousel Styles
+  carouselContainer: {
+    height: SCREEN_HEIGHT / 4,
     marginBottom: 20,
   },
-  planCardGradient: {
-    borderRadius: 18,
+  carouselCardWrapper: {
+    paddingHorizontal: 24,
+    marginBottom: CARD_SPACING,
+  },
+  carouselCard: {
+    height: CARD_HEIGHT,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(102, 187, 106, 0.3)',
-    overflow: 'hidden',
+    borderColor: 'rgba(102, 187, 106, 0.6)',
     shadowColor: '#66BB6A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  planCardContent: {
-    padding: 20,
+  carouselCardContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
-  planCardTitle: {
+  carouselCardLeft: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  carouselCardTitle: {
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 4,
     letterSpacing: -0.3,
   },
-  planCardLabel: {
-    color: '#66BB6A',
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 14,
-  },
-  planCardStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  planCardStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  planCardStatText: {
-    color: '#C7C7CC',
+  carouselCardSubtitle: {
+    color: '#8E8E93',
     fontSize: 14,
-    marginLeft: 6,
+    fontWeight: '500',
+  },
+  circularProgress: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: 'rgba(102, 187, 106, 0.6)',
+    backgroundColor: '#1C1C1E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 16,
+  },
+  circularProgressText: {
+    color: '#66BB6A',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  // Placeholder Section
+  placeholderSection: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+  },
+  placeholderTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  placeholderText: {
+    color: '#8E8E93',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

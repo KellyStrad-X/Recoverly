@@ -68,7 +68,8 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
       return newSet;
     });
 
-    // If expanding and media not already loaded, fetch fresh per ExerciseDB ToS
+    // Component-level caching: Only fetch if not already in state
+    // This is ToS compliant - prevents redundant API calls during session
     if (!isCurrentlyExpanded && !exerciseMedia.has(exerciseId)) {
       setLoadingMediaIds((prev) => new Set(prev).add(exerciseId));
 
@@ -296,13 +297,13 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
                     </View>
                   )}
 
-                  {/* Watch Video Button */}
+                  {/* YouTube Tutorial Button - Optional Enhancement */}
                   {media?.youtubeVideoId && media?.youtubeVideoTitle && (
                     <TouchableOpacity
                       style={styles.exerciseWatchVideoButton}
                       onPress={() => handleWatchVideo(media.youtubeVideoId!, media.youtubeVideoTitle!)}
                     >
-                      <MaterialCommunityIcons name="play-circle" size={18} color="#FFFFFF" />
+                      <MaterialCommunityIcons name="youtube" size={18} color="#FF0000" />
                       <Text style={styles.exerciseWatchVideoText}>Watch Tutorial</Text>
                     </TouchableOpacity>
                   )}
@@ -836,9 +837,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#1C1C1E',
     borderWidth: 1,
-    borderColor: '#66BB6A',
+    borderColor: '#FF0000',
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 16,

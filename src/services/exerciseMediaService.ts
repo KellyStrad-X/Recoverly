@@ -3,18 +3,23 @@ import { db } from '@/config/firebase';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 
 /**
- * Exercise Media Service - YouTube Integration with Caching
+ * Exercise Media Service - Hybrid GIF + YouTube Integration
+ *
+ * STRATEGY:
+ * - ExerciseDB GIFs: Primary visual (always show if available)
+ * - YouTube Videos: Optional enhancement (button to watch tutorial)
  *
  * CACHING POLICY:
- * - YouTube Data API: Caching ALLOWED for up to 24 hours (per ToS Section III.E.4)
- * - We cache video IDs and metadata in Firestore for consistent user experience
- * - Users see the same video on repeat visits
- * - ExerciseDB: Caching PROHIBITED (deprecated - not using anymore)
+ * - ExerciseDB: NO persistent caching (per ToS)
+ *   - Component-level caching OK (React state during session)
+ *   - Prevents redundant API calls on re-expansion
+ * - YouTube: Firestore caching ALLOWED (24hr TTL per ToS)
+ *   - Consistent video experience across visits
  *
- * Implementation:
- * - Check Firestore cache first (with 24hr TTL)
- * - If cache miss or expired, fetch from YouTube API
- * - Store result in Firestore for future use
+ * QUOTA MANAGEMENT:
+ * - Component state prevents re-fetching on collapse/expand
+ * - Typical usage: ~1-2 fetches per exercise per session
+ * - Ultra plan (200k/month) supports ~5000 active users
  */
 
 const RAPIDAPI_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_RAPIDAPI_KEY || process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
@@ -243,10 +248,15 @@ export const searchYouTubeVideo = async (
 };
 
 /**
- * Fetch media for a single exercise - prioritizes cached YouTube videos
- * CACHING STRATEGY:
- * - YouTube: Check cache first (24hr TTL), fetch & cache if miss
- * - ExerciseDB: Deprecated (not using GIFs anymore)
+ * Fetch media for a single exercise - Hybrid approach
+ * STRATEGY:
+ * - ExerciseDB GIF: Primary visual (fetch fresh per ToS)
+ * - YouTube: Optional enhancement (use cache if available)
+ *
+ * Component-level caching (caller's responsibility):
+ * - Store result in React state
+ * - Don't re-fetch if already in state
+ * - This is ToS compliant (not persistent storage)
  */
 export const fetchExerciseMedia = async (
   exerciseId: string,
@@ -260,32 +270,54 @@ export const fetchExerciseMedia = async (
     lastFetched: new Date(),
   };
 
-  // Check YouTube cache first
-  try {
-    const cachedVideo = await getCachedYouTubeVideo(exerciseId);
+  // Fetch both in parallel for speed
+  const [gifUrl, youtubeResult] = await Promise.all([
+    // ExerciseDB GIF - primary visual
+    searchExerciseDBByName(exerciseName).catch((error) => {
+      console.error('Error fetching ExerciseDB GIF:', error);
+      return null;
+    }),
 
-    if (cachedVideo) {
-      // Use cached video
-      media.youtubeVideoId = cachedVideo.videoId;
-      media.youtubeVideoTitle = cachedVideo.title;
-    } else {
-      // Cache miss - fetch from API and cache the result
-      const youtubeResult = await searchYouTubeVideo(exerciseName);
-      if (youtubeResult) {
-        media.youtubeVideoId = youtubeResult.videoId;
-        media.youtubeVideoTitle = youtubeResult.title;
+    // YouTube - check cache first, then fetch if needed
+    (async () => {
+      try {
+        const cachedVideo = await getCachedYouTubeVideo(exerciseId);
 
-        // Cache for future use
-        await cacheYouTubeVideo(
-          exerciseId,
-          exerciseName,
-          youtubeResult.videoId,
-          youtubeResult.title
-        );
+        if (cachedVideo) {
+          console.log(`✅ Using cached YouTube video for: ${exerciseName}`);
+          return cachedVideo;
+        }
+
+        // Cache miss - fetch from API
+        const result = await searchYouTubeVideo(exerciseName);
+        if (result) {
+          // Cache for future use
+          await cacheYouTubeVideo(
+            exerciseId,
+            exerciseName,
+            result.videoId,
+            result.title
+          );
+          return result;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching YouTube video:', error);
+        return null;
       }
-    }
-  } catch (error) {
-    console.error('Error fetching YouTube video:', error);
+    })(),
+  ]);
+
+  // Populate media object
+  if (gifUrl) {
+    media.gifUrl = gifUrl;
+    console.log(`✅ Found GIF for ${exerciseName}`);
+  }
+
+  if (youtubeResult) {
+    media.youtubeVideoId = youtubeResult.videoId;
+    media.youtubeVideoTitle = youtubeResult.title;
+    console.log(`✅ Found YouTube video for ${exerciseName}`);
   }
 
   return media;

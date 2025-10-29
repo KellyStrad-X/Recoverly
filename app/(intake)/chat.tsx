@@ -16,6 +16,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
 import { generateRecoveryProtocol, type Message as AIMessage } from '@/services/aiService';
+import * as Speech from 'expo-speech';
 
 interface Message {
   id: string;
@@ -41,6 +42,7 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [initialMessageSent, setInitialMessageSent] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -165,6 +167,59 @@ export default function ChatScreen() {
     sendMessageToAI(reply);
   };
 
+  const handleMicPress = async () => {
+    if (isRecording) {
+      // Stop recording
+      setIsRecording(false);
+      // In production, this would stop the recording and process the audio
+      Alert.alert(
+        'Voice Input',
+        'Voice recognition will be available soon! For now, please type your message.',
+        [{ text: 'OK' }]
+      );
+    } else {
+      // Start recording
+      setIsRecording(true);
+
+      // For web platform, use Web Speech API
+      if (Platform.OS === 'web' && 'webkitSpeechRecognition' in window) {
+        const SpeechRecognition = (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInputText(transcript);
+          setIsRecording(false);
+        };
+
+        recognition.onerror = () => {
+          setIsRecording(false);
+          Alert.alert('Error', 'Voice recognition failed. Please try typing instead.');
+        };
+
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+
+        recognition.start();
+      } else {
+        // For native platforms, show coming soon message
+        setTimeout(() => {
+          setIsRecording(false);
+          Alert.alert(
+            'Coming Soon!',
+            'Voice input will be available in the next update. For now, please type your message.',
+            [{ text: 'OK' }]
+          );
+        }, 500);
+      }
+    }
+  };
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isUser = item.role === 'user';
     const isLastMessage = messages[messages.length - 1].id === item.id;
@@ -274,14 +329,25 @@ export default function ChatScreen() {
         {/* Input Bar */}
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
+            <TouchableOpacity
+              style={[styles.micButton, isRecording && styles.micButtonRecording]}
+              onPress={handleMicPress}
+            >
+              <MaterialCommunityIcons
+                name={isRecording ? "microphone" : "microphone-outline"}
+                size={20}
+                color={isRecording ? '#FF3B30' : '#8E8E93'}
+              />
+            </TouchableOpacity>
             <TextInput
               style={styles.input}
-              placeholder="Describe your pain or issue..."
+              placeholder={isRecording ? "Listening..." : "Describe your pain or issue..."}
               placeholderTextColor="#8E8E93"
               value={inputText}
               onChangeText={setInputText}
               multiline
               maxLength={500}
+              editable={!isRecording}
             />
             <TouchableOpacity
               style={[
@@ -289,12 +355,12 @@ export default function ChatScreen() {
                 !inputText.trim() && styles.sendButtonDisabled,
               ]}
               onPress={handleSend}
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || isRecording}
             >
               <MaterialCommunityIcons
                 name="send"
                 size={20}
-                color={inputText.trim() ? '#000000' : '#8E8E93'}
+                color={inputText.trim() && !isRecording ? '#000000' : '#8E8E93'}
               />
             </TouchableOpacity>
           </View>
@@ -436,6 +502,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     maxHeight: 100,
     paddingVertical: 8,
+  },
+  micButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#2C2C2E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  micButtonRecording: {
+    backgroundColor: 'rgba(255, 59, 48, 0.2)',
   },
   sendButton: {
     width: 36,

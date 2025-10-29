@@ -108,13 +108,15 @@ export default function PaywallScreen() {
             onPress={() => setSelectedPlan('annual')}
             activeOpacity={0.7}
           >
-            {plans.annual.savings && (
-              <View style={styles.savingsBadge}>
-                <Text style={styles.savingsText}>{plans.annual.savings}</Text>
-              </View>
-            )}
             <View style={styles.planHeader}>
-              <Text style={styles.planName}>Annual</Text>
+              <View style={styles.planNameContainer}>
+                <Text style={styles.planName}>Annual</Text>
+                {plans.annual.savings && (
+                  <View style={styles.savingsBadge}>
+                    <Text style={styles.savingsText}>{plans.annual.savings}</Text>
+                  </View>
+                )}
+              </View>
               <View style={styles.radioButton}>
                 {selectedPlan === 'annual' && (
                   <View style={styles.radioButtonInner} />
@@ -258,30 +260,32 @@ const styles = StyleSheet.create({
   planCardSelected: {
     borderColor: '#66BB6A',
   },
-  savingsBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#66BB6A',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  savingsText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#000000',
-  },
   planHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
+  planNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   planName: {
     fontSize: 20,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  savingsBadge: {
+    backgroundColor: '#66BB6A',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  savingsText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#000000',
   },
   radioButton: {
     width: 24,

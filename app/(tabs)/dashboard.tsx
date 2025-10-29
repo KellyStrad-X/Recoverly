@@ -424,8 +424,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingBottom: 0,
-    backgroundColor: '#0000FF', // DEBUG: blue to see scroll content
+    paddingBottom: 120,
   },
   header: {
     marginTop: 24,
@@ -469,14 +468,12 @@ const styles = StyleSheet.create({
   chatInputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#FF0000', // DEBUG: red to see the container
+    backgroundColor: '#1C1C1E',
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    alignSelf: 'stretch',
-    marginHorizontal: 0,
-    marginBottom: 0,
-    marginTop: 0,
+    marginHorizontal: 24,
+    marginBottom: 12,
   },
   chatInput: {
     flex: 1,

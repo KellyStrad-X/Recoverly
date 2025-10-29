@@ -275,11 +275,7 @@ export default function DashboardScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Dashboard Content */}
       {!isChatExpanded && (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'position' : 'height'}
-          style={styles.keyboardAvoid}
-          keyboardVerticalOffset={0}
-        >
+        <View style={{ flex: 1 }}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
@@ -307,8 +303,13 @@ export default function DashboardScreen() {
                 Describe your pain or movement issue to get started with a personalized recovery plan.
               </Text>
             </View>
+          </ScrollView>
 
-            {/* Inline Chat Input - OUTSIDE emptyState for full width */}
+          {/* Inline Chat Input - Positioned at bottom */}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={0}
+          >
             <View style={styles.chatInputContainer}>
               <TextInput
                 style={styles.chatInput}
@@ -336,8 +337,8 @@ export default function DashboardScreen() {
                 />
               </TouchableOpacity>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       )}
 
       {/* Chat Overlay - OUTSIDE KeyboardAvoidingView */}

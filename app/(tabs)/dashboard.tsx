@@ -385,9 +385,6 @@ export default function DashboardScreen() {
   const handleSend = async () => {
     if (!inputText.trim() || !user) return;
 
-    // Dismiss keyboard first
-    Keyboard.dismiss();
-
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',

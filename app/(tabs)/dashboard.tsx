@@ -71,6 +71,8 @@ export default function DashboardScreen() {
   const headerOpacity = useRef(new Animated.Value(1)).current;
   const logoTranslateY = useRef(new Animated.Value(0)).current;
   const dashboardContentOpacity = useRef(new Animated.Value(1)).current;
+  const centerLogoOpacity = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Keyboard visibility listeners
   useEffect(() => {
@@ -96,7 +98,28 @@ export default function DashboardScreen() {
               duration: 250,
               useNativeDriver: true,
             }),
+            Animated.timing(centerLogoOpacity, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true,
+            }),
           ]).start();
+
+          // Start pulse animation
+          Animated.loop(
+            Animated.sequence([
+              Animated.timing(pulseAnim, {
+                toValue: 1.1,
+                duration: 1000,
+                useNativeDriver: true,
+              }),
+              Animated.timing(pulseAnim, {
+                toValue: 1,
+                duration: 1000,
+                useNativeDriver: true,
+              }),
+            ])
+          ).start();
         }
       }
     );
@@ -106,6 +129,10 @@ export default function DashboardScreen() {
       () => {
         if (!isChatExpanded) {
           setIsKeyboardVisible(false);
+          // Stop pulse animation
+          pulseAnim.stopAnimation();
+          pulseAnim.setValue(1);
+
           // Fade in header, dashboard content, and slide down logo
           Animated.parallel([
             Animated.timing(headerOpacity, {
@@ -121,6 +148,11 @@ export default function DashboardScreen() {
             Animated.timing(logoTranslateY, {
               toValue: 0,
               duration: 250,
+              useNativeDriver: true,
+            }),
+            Animated.timing(centerLogoOpacity, {
+              toValue: 0,
+              duration: 200,
               useNativeDriver: true,
             }),
           ]).start();
@@ -180,6 +212,15 @@ export default function DashboardScreen() {
 
   const expandToChat = () => {
     setIsChatExpanded(true);
+
+    // Stop pulse animation and hide center logo
+    pulseAnim.stopAnimation();
+    pulseAnim.setValue(1);
+    Animated.timing(centerLogoOpacity, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
 
     // Simple fade-in
     Animated.timing(chatOpacity, {
@@ -665,6 +706,25 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+      )}
+
+      {/* Pulsing Logo - Shows when keyboard is visible but chat not expanded */}
+      {isKeyboardVisible && !isChatExpanded && (
+        <Animated.View
+          style={[
+            styles.centerLogoContainer,
+            {
+              opacity: centerLogoOpacity,
+              transform: [{ scale: pulseAnim }],
+            },
+          ]}
+        >
+          <Image
+            source={require('../../misc/RecoverlyLogoHD.png')}
+            style={styles.centerLogo}
+            resizeMode="contain"
+          />
+        </Animated.View>
       )}
 
       {/* Chat Overlay - OUTSIDE KeyboardAvoidingView */}
@@ -1164,5 +1224,20 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     fontSize: 16,
     fontWeight: '500',
+  },
+  // Center Logo (Pulsing)
+  centerLogoContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    pointerEvents: 'none',
+  },
+  centerLogo: {
+    width: 120,
+    height: 120,
   },
 });

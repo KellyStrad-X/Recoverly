@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +15,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getPlanById } from '@/services/planService';
 import type { RehabPlan } from '@/types/plan';
 import SessionFlowModal from '@/components/SessionFlowModal';
+import YouTubeModal from '@/components/YouTubeModal';
+import { fetchBatchExerciseMedia, type ExerciseMedia } from '@/services/exerciseMediaService';
 
 export default function PlanDetailScreen() {
   const router = useRouter();
@@ -22,6 +25,10 @@ export default function PlanDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(new Set());
   const [sessionModalVisible, setSessionModalVisible] = useState(false);
+  const [exerciseMedia, setExerciseMedia] = useState<Map<string, ExerciseMedia>>(new Map());
+  const [loadingMedia, setLoadingMedia] = useState(false);
+  const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string } | null>(null);
 
   useEffect(() => {
     loadPlan();
@@ -41,11 +48,33 @@ export default function PlanDetailScreen() {
       }
 
       setPlan(fetchedPlan);
+
+      // Fetch exercise media in background
+      loadExerciseMedia(fetchedPlan);
     } catch (error) {
       console.error('Error loading plan:', error);
       Alert.alert('Error', 'Failed to load plan');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadExerciseMedia = async (planData: RehabPlan) => {
+    try {
+      setLoadingMedia(true);
+      const exercises = planData.exercises.map((ex) => ({
+        id: ex.id,
+        name: ex.name,
+      }));
+
+      const mediaMap = await fetchBatchExerciseMedia(exercises);
+      setExerciseMedia(mediaMap);
+      console.log(`Loaded media for ${mediaMap.size} exercises`);
+    } catch (error) {
+      console.error('Error loading exercise media:', error);
+      // Don't alert - media is optional enhancement
+    } finally {
+      setLoadingMedia(false);
     }
   };
 
@@ -68,6 +97,11 @@ export default function PlanDetailScreen() {
   const handleSessionComplete = () => {
     setSessionModalVisible(false);
     loadPlan(); // Refresh plan data
+  };
+
+  const handleWatchVideo = (videoId: string, title: string) => {
+    setSelectedVideo({ videoId, title });
+    setYoutubeModalVisible(true);
   };
 
   if (loading) {
@@ -187,6 +221,41 @@ export default function PlanDetailScreen() {
                         <Text style={styles.safetyText}>{exercise.safetyNotes}</Text>
                       </View>
                     )}
+
+                    {/* Exercise GIF */}
+                    {exerciseMedia.get(exercise.id)?.gifUrl && (
+                      <View style={styles.gifContainer}>
+                        <Image
+                          source={{ uri: exerciseMedia.get(exercise.id)?.gifUrl }}
+                          style={styles.exerciseGif}
+                          resizeMode="contain"
+                        />
+                      </View>
+                    )}
+
+                    {/* Watch Full Tutorial Button */}
+                    {exerciseMedia.get(exercise.id)?.youtubeVideoId && (
+                      <TouchableOpacity
+                        style={styles.watchVideoButton}
+                        onPress={() => {
+                          const media = exerciseMedia.get(exercise.id);
+                          if (media?.youtubeVideoId && media?.youtubeVideoTitle) {
+                            handleWatchVideo(media.youtubeVideoId, media.youtubeVideoTitle);
+                          }
+                        }}
+                      >
+                        <MaterialCommunityIcons name="play-circle" size={20} color="#FFFFFF" />
+                        <Text style={styles.watchVideoText}>Watch Full Tutorial</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Loading media indicator */}
+                    {loadingMedia && !exerciseMedia.has(exercise.id) && (
+                      <View style={styles.loadingMediaContainer}>
+                        <ActivityIndicator size="small" color="#66BB6A" />
+                        <Text style={styles.loadingMediaText}>Loading visual aids...</Text>
+                      </View>
+                    )}
                   </View>
                 )}
               </TouchableOpacity>
@@ -227,6 +296,16 @@ export default function PlanDetailScreen() {
           plan={plan}
           onClose={() => setSessionModalVisible(false)}
           onComplete={handleSessionComplete}
+        />
+      )}
+
+      {/* YouTube Video Modal */}
+      {youtubeModalVisible && selectedVideo && (
+        <YouTubeModal
+          visible={youtubeModalVisible}
+          videoId={selectedVideo.videoId}
+          videoTitle={selectedVideo.title}
+          onClose={() => setYoutubeModalVisible(false)}
         />
       )}
     </SafeAreaView>
@@ -500,5 +579,46 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontStyle: 'italic',
+  },
+  gifContainer: {
+    marginTop: 16,
+    backgroundColor: '#0A0A0A',
+    borderRadius: 12,
+    overflow: 'hidden',
+    alignItems: 'center',
+  },
+  exerciseGif: {
+    width: '100%',
+    height: 200,
+  },
+  watchVideoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#2C2C2E',
+    borderWidth: 1,
+    borderColor: '#66BB6A',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginTop: 16,
+  },
+  watchVideoText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  loadingMediaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 16,
+    marginTop: 16,
+  },
+  loadingMediaText: {
+    color: '#8E8E93',
+    fontSize: 14,
   },
 });

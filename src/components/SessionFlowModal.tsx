@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,6 +7,8 @@ import {
   ScrollView,
   TextInput,
   Animated,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -15,6 +17,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { createSessionLog, updatePlanProgress } from '@/services/planService';
 import type { RehabPlan, Exercise } from '@/types/plan';
 import { Timestamp } from 'firebase/firestore';
+import YouTubeModal from './YouTubeModal';
+import { fetchBatchExerciseMedia, type ExerciseMedia } from '@/services/exerciseMediaService';
 
 type SessionStep = 'prePain' | 'exercises' | 'postPain' | 'complete';
 
@@ -31,8 +35,37 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
   const [prePainScore, setPrePainScore] = useState(5);
   const [postPainScore, setPostPainScore] = useState(5);
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
+  const [expandedExercises, setExpandedExercises] = useState<Set<string>>(new Set());
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [exerciseMedia, setExerciseMedia] = useState<Map<string, ExerciseMedia>>(new Map());
+  const [loadingMedia, setLoadingMedia] = useState(false);
+  const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string } | null>(null);
+
+  // Load exercise media when modal opens
+  useEffect(() => {
+    if (visible) {
+      loadExerciseMedia();
+    }
+  }, [visible]);
+
+  const loadExerciseMedia = async () => {
+    try {
+      setLoadingMedia(true);
+      const exercises = plan.exercises.map((ex) => ({
+        id: ex.id,
+        name: ex.name,
+      }));
+
+      const mediaMap = await fetchBatchExerciseMedia(exercises);
+      setExerciseMedia(mediaMap);
+    } catch (error) {
+      console.error('Error loading exercise media:', error);
+    } finally {
+      setLoadingMedia(false);
+    }
+  };
 
   const toggleExercise = (exerciseId: string) => {
     setCompletedExercises((prev) => {
@@ -44,6 +77,23 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
       }
       return newSet;
     });
+  };
+
+  const toggleExerciseExpanded = (exerciseId: string) => {
+    setExpandedExercises((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(exerciseId)) {
+        newSet.delete(exerciseId);
+      } else {
+        newSet.add(exerciseId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleWatchVideo = (videoId: string, title: string) => {
+    setSelectedVideo({ videoId, title });
+    setYoutubeModalVisible(true);
   };
 
   const handleNextFromPrePain = () => {
@@ -178,34 +228,106 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
       <View style={styles.stepHeader}>
         <Text style={styles.stepTitle}>Complete Your Exercises</Text>
         <Text style={styles.stepSubtitle}>
-          Check off each exercise as you finish
+          Tap to see details • Check off when done
         </Text>
       </View>
 
       <ScrollView style={styles.exercisesList} showsVerticalScrollIndicator={false}>
         {plan.exercises.map((exercise, index) => {
           const isCompleted = completedExercises.has(exercise.id);
+          const isExpanded = expandedExercises.has(exercise.id);
+          const media = exerciseMedia.get(exercise.id);
+
           return (
-            <TouchableOpacity
+            <View
               key={exercise.id}
               style={[styles.exerciseItem, isCompleted && styles.exerciseItemCompleted]}
-              onPress={() => toggleExercise(exercise.id)}
-              activeOpacity={0.7}
             >
-              <View style={styles.exerciseCheckbox}>
-                {isCompleted && (
-                  <MaterialCommunityIcons name="check" size={20} color="#000000" />
-                )}
-              </View>
-              <View style={styles.exerciseContent}>
-                <Text style={[styles.exerciseNameText, isCompleted && styles.exerciseNameCompleted]}>
-                  {index + 1}. {exercise.name}
-                </Text>
-                <Text style={styles.exerciseSetsRepsText}>
-                  {exercise.sets} sets × {exercise.reps}
-                </Text>
-              </View>
-            </TouchableOpacity>
+              {/* Exercise Header - Toggle Details */}
+              <TouchableOpacity
+                style={styles.exerciseHeaderRow}
+                onPress={() => toggleExerciseExpanded(exercise.id)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.exerciseCheckbox}>
+                  {isCompleted && (
+                    <MaterialCommunityIcons name="check" size={20} color="#000000" />
+                  )}
+                </View>
+                <View style={styles.exerciseContent}>
+                  <Text style={[styles.exerciseNameText, isCompleted && styles.exerciseNameCompleted]}>
+                    {index + 1}. {exercise.name}
+                  </Text>
+                  <Text style={styles.exerciseSetsRepsText}>
+                    {exercise.sets} sets × {exercise.reps}
+                  </Text>
+                </View>
+                <MaterialCommunityIcons
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={24}
+                  color="#8E8E93"
+                />
+              </TouchableOpacity>
+
+              {/* Expanded Details */}
+              {isExpanded && (
+                <View style={styles.exerciseExpandedDetails}>
+                  {/* Instructions */}
+                  <View style={styles.exerciseDetailSection}>
+                    <Text style={styles.exerciseDetailLabel}>Instructions</Text>
+                    <Text style={styles.exerciseDetailText}>{exercise.instructions}</Text>
+                  </View>
+
+                  {/* Safety Notes */}
+                  {exercise.safetyNotes && (
+                    <View style={styles.exerciseDetailSection}>
+                      <View style={styles.exerciseSafetyHeader}>
+                        <MaterialCommunityIcons name="shield-alert" size={16} color="#FF9800" />
+                        <Text style={styles.exerciseSafetyLabel}>Safety Notes</Text>
+                      </View>
+                      <Text style={styles.exerciseSafetyText}>{exercise.safetyNotes}</Text>
+                    </View>
+                  )}
+
+                  {/* GIF */}
+                  {media?.gifUrl && (
+                    <View style={styles.exerciseGifContainer}>
+                      <Image
+                        source={{ uri: media.gifUrl }}
+                        style={styles.exerciseGifImage}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  )}
+
+                  {/* Watch Video Button */}
+                  {media?.youtubeVideoId && media?.youtubeVideoTitle && (
+                    <TouchableOpacity
+                      style={styles.exerciseWatchVideoButton}
+                      onPress={() => handleWatchVideo(media.youtubeVideoId!, media.youtubeVideoTitle!)}
+                    >
+                      <MaterialCommunityIcons name="play-circle" size={18} color="#FFFFFF" />
+                      <Text style={styles.exerciseWatchVideoText}>Watch Tutorial</Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Mark Complete Button */}
+                  <TouchableOpacity
+                    style={[styles.markCompleteButton, isCompleted && styles.markCompleteButtonActive]}
+                    onPress={() => toggleExercise(exercise.id)}
+                  >
+                    <MaterialCommunityIcons
+                      name={isCompleted ? 'check-circle' : 'circle-outline'}
+                      size={20}
+                      color={isCompleted ? '#000000' : '#FFFFFF'}
+                    />
+                    <Text style={[styles.markCompleteText, isCompleted && styles.markCompleteTextActive]}>
+                      {isCompleted ? 'Completed' : 'Mark as Complete'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           );
         })}
       </ScrollView>
@@ -373,6 +495,16 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
           {step === 'complete' && renderCompleteStep()}
         </ScrollView>
       </View>
+
+      {/* YouTube Video Modal */}
+      {youtubeModalVisible && selectedVideo && (
+        <YouTubeModal
+          visible={youtubeModalVisible}
+          videoId={selectedVideo.videoId}
+          videoTitle={selectedVideo.title}
+          onClose={() => setYoutubeModalVisible(false)}
+        />
+      )}
     </Modal>
   );
 }
@@ -640,5 +772,103 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
+  },
+  exerciseHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  exerciseExpandedDetails: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#2C2C2E',
+  },
+  exerciseDetailSection: {
+    marginBottom: 16,
+  },
+  exerciseDetailLabel: {
+    color: '#8E8E93',
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  exerciseDetailText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  exerciseSafetyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  exerciseSafetyLabel: {
+    color: '#FF9800',
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  exerciseSafetyText: {
+    color: '#FF9800',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  exerciseGifContainer: {
+    marginBottom: 12,
+    backgroundColor: '#0A0A0A',
+    borderRadius: 12,
+    overflow: 'hidden',
+    alignItems: 'center',
+  },
+  exerciseGifImage: {
+    width: '100%',
+    height: 160,
+  },
+  exerciseWatchVideoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#2C2C2E',
+    borderWidth: 1,
+    borderColor: '#66BB6A',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  exerciseWatchVideoText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  markCompleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#2C2C2E',
+    borderWidth: 2,
+    borderColor: '#66BB6A',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginTop: 4,
+  },
+  markCompleteButtonActive: {
+    backgroundColor: '#66BB6A',
+  },
+  markCompleteText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  markCompleteTextActive: {
+    color: '#000000',
   },
 });

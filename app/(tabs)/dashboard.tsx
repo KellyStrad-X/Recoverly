@@ -38,10 +38,50 @@ export default function DashboardScreen() {
   const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   // Animation values
   const chatOpacity = useRef(new Animated.Value(0)).current;
+  const headerOpacity = useRef(new Animated.Value(1)).current;
+
+  // Keyboard visibility listeners
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        if (!isChatExpanded) {
+          setIsKeyboardVisible(true);
+          // Fade out header
+          Animated.timing(headerOpacity, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          }).start();
+        }
+      }
+    );
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        if (!isChatExpanded) {
+          setIsKeyboardVisible(false);
+          // Fade in header
+          Animated.timing(headerOpacity, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }).start();
+        }
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, [isChatExpanded, headerOpacity]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -281,14 +321,14 @@ export default function DashboardScreen() {
             keyboardShouldPersistTaps="handled"
             scrollEnabled={false}
           >
-            <View style={styles.header}>
+            <Animated.View style={[styles.header, { opacity: headerOpacity }]}>
               <Text variant="headlineMedium" style={styles.greeting}>
                 Hi, {user?.displayName?.split(' ')[0] || 'there'}
               </Text>
               <Text variant="bodyMedium" style={styles.subtitle}>
                 Ready to start your recovery?
               </Text>
-            </View>
+            </Animated.View>
 
             <View style={styles.emptyState}>
               <Image
@@ -308,7 +348,7 @@ export default function DashboardScreen() {
           {/* Inline Chat Input - Positioned at bottom */}
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={0}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
           >
             <View style={styles.chatInputContainer}>
               <TextInput

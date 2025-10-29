@@ -27,7 +27,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Carousel constants
-const CARD_WIDTH = SCREEN_WIDTH - 56; // Leave 28px padding on each side
+const CARD_WIDTH = SCREEN_WIDTH - 64; // Leave 32px padding on each side
 const CARD_HEIGHT = 140;
 const CARD_SPACING = 16;
 
@@ -683,7 +683,7 @@ export default function DashboardScreen() {
                     decelerationRate="fast"
                     snapToAlignment="center"
                     contentContainerStyle={{
-                      paddingHorizontal: 28,
+                      paddingHorizontal: 32,
                     }}
                     onScroll={Animated.event(
                       [{ nativeEvent: { contentOffset: { x: scrollX } } }],

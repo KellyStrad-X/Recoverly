@@ -44,6 +44,7 @@ export default function DashboardScreen() {
   // Animation values
   const chatOpacity = useRef(new Animated.Value(0)).current;
   const headerOpacity = useRef(new Animated.Value(1)).current;
+  const logoTranslateY = useRef(new Animated.Value(0)).current;
 
   // Keyboard visibility listeners
   useEffect(() => {
@@ -52,12 +53,19 @@ export default function DashboardScreen() {
       () => {
         if (!isChatExpanded) {
           setIsKeyboardVisible(true);
-          // Fade out header
-          Animated.timing(headerOpacity, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }).start();
+          // Fade out header and slide up logo
+          Animated.parallel([
+            Animated.timing(headerOpacity, {
+              toValue: 0,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(logoTranslateY, {
+              toValue: -100,
+              duration: 250,
+              useNativeDriver: true,
+            }),
+          ]).start();
         }
       }
     );
@@ -67,12 +75,19 @@ export default function DashboardScreen() {
       () => {
         if (!isChatExpanded) {
           setIsKeyboardVisible(false);
-          // Fade in header
-          Animated.timing(headerOpacity, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-          }).start();
+          // Fade in header and slide down logo
+          Animated.parallel([
+            Animated.timing(headerOpacity, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(logoTranslateY, {
+              toValue: 0,
+              duration: 250,
+              useNativeDriver: true,
+            }),
+          ]).start();
         }
       }
     );
@@ -81,7 +96,7 @@ export default function DashboardScreen() {
       keyboardWillShow.remove();
       keyboardWillHide.remove();
     };
-  }, [isChatExpanded, headerOpacity]);
+  }, [isChatExpanded, headerOpacity, logoTranslateY]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -315,7 +330,11 @@ export default function DashboardScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Dashboard Content */}
       {!isChatExpanded && (
-        <View style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
@@ -330,7 +349,12 @@ export default function DashboardScreen() {
               </Text>
             </Animated.View>
 
-            <View style={styles.emptyState}>
+            <Animated.View
+              style={[
+                styles.emptyState,
+                { transform: [{ translateY: logoTranslateY }] }
+              ]}
+            >
               <Image
                 source={require('../../misc/RecoverlyLogoHD.png')}
                 style={styles.logoImage}
@@ -342,43 +366,38 @@ export default function DashboardScreen() {
               <Text variant="bodyMedium" style={styles.emptyDescription}>
                 Describe your pain or movement issue to get started with a personalized recovery plan.
               </Text>
-            </View>
+            </Animated.View>
           </ScrollView>
 
           {/* Inline Chat Input - Positioned at bottom */}
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
-          >
-            <View style={styles.chatInputContainer}>
-              <TextInput
-                style={styles.chatInput}
-                placeholder="Describe your pain or issue..."
-                placeholderTextColor="#8E8E93"
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                maxLength={500}
-                keyboardAppearance="dark"
-                blurOnSubmit={false}
+          <View style={styles.chatInputContainer}>
+            <TextInput
+              style={styles.chatInput}
+              placeholder="Describe your pain or issue..."
+              placeholderTextColor="#8E8E93"
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
+              keyboardAppearance="dark"
+              blurOnSubmit={false}
+            />
+            <TouchableOpacity
+              style={[
+                styles.chatSendButton,
+                !inputText.trim() && styles.chatSendButtonDisabled,
+              ]}
+              onPress={handleStartChat}
+              disabled={!inputText.trim()}
+            >
+              <MaterialCommunityIcons
+                name="send"
+                size={20}
+                color={inputText.trim() ? '#000000' : '#8E8E93'}
               />
-              <TouchableOpacity
-                style={[
-                  styles.chatSendButton,
-                  !inputText.trim() && styles.chatSendButtonDisabled,
-                ]}
-                onPress={handleStartChat}
-                disabled={!inputText.trim()}
-              >
-                <MaterialCommunityIcons
-                  name="send"
-                  size={20}
-                  color={inputText.trim() ? '#000000' : '#8E8E93'}
-                />
-              </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       )}
 
       {/* Chat Overlay - OUTSIDE KeyboardAvoidingView */}

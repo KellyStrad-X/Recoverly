@@ -1,12 +1,15 @@
 import Constants from 'expo-constants';
 import { db } from '@/config/firebase';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import Fuse from 'fuse.js';
+import { Buffer } from 'buffer';
+import exerciseDatabase from '../../scripts/exercisedb-complete-index.json';
 
 /**
  * Exercise Media Service - Hybrid GIF + YouTube Integration
  *
  * STRATEGY:
- * - ExerciseDB GIFs: Primary visual (always show if available)
+ * - ExerciseDB GIFs: Primary visual (fetched as base64 data URI)
  * - YouTube Videos: Optional enhancement (button to watch tutorial)
  *
  * CACHING POLICY:
@@ -20,6 +23,11 @@ import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
  * - Component state prevents re-fetching on collapse/expand
  * - Typical usage: ~1-2 fetches per exercise per session
  * - Ultra plan (200k/month) supports ~5000 active users
+ *
+ * GIF FETCHING IMPLEMENTATION:
+ * - Uses /image endpoint with auth headers
+ * - Fetches as blob, converts to base64 for React Native Image component
+ * - Format: data:image/gif;base64,{base64_data}
  */
 
 const RAPIDAPI_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_RAPIDAPI_KEY || process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
@@ -27,6 +35,13 @@ const YOUTUBE_API_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_YOUTUBE_API_KEY
 
 const EXERCISEDB_BASE_URL = 'https://exercisedb.p.rapidapi.com';
 const YOUTUBE_BASE_URL = 'https://www.googleapis.com/youtube/v3';
+
+// Initialize Fuse.js for fuzzy exercise name matching
+const fuse = new Fuse(exerciseDatabase, {
+  keys: ['name'],
+  threshold: 0.4, // 0 = exact match, 1 = match anything
+  includeScore: true,
+});
 
 export interface ExerciseMedia {
   exerciseId: string;
@@ -49,13 +64,50 @@ interface CachedYouTubeVideo {
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours per YouTube ToS
 
 /**
- * Helper to search ExerciseDB with a specific query
+ * Find exercise in database using fuzzy matching
+ * Returns exercise object with id, name, bodyPart, target, equipment
  */
-const searchExerciseDBQuery = async (query: string): Promise<any[] | null> => {
-  if (!RAPIDAPI_KEY) return null;
+const findExerciseByName = (exerciseName: string): { id: string; name: string } | null => {
+  console.log('🔍 Searching exercise database for:', exerciseName);
+
+  const results = fuse.search(exerciseName);
+
+  if (results.length === 0) {
+    console.warn('⚠️ No exercises found in database');
+    return null;
+  }
+
+  const bestMatch = results[0];
+  console.log(`✅ Found match: "${bestMatch.item.name}" (ID: ${bestMatch.item.id}, score: ${bestMatch.score?.toFixed(2)})`);
+
+  return {
+    id: bestMatch.item.id,
+    name: bestMatch.item.name,
+  };
+};
+
+/**
+ * Convert ArrayBuffer to base64 string using Buffer
+ */
+const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  return Buffer.from(bytes).toString('base64');
+};
+
+/**
+ * Fetch GIF from ExerciseDB /image endpoint
+ * Returns base64 data URI for React Native Image component
+ */
+export const fetchExerciseGif = async (exerciseId: string): Promise<string | null> => {
+  if (!RAPIDAPI_KEY) {
+    console.error('❌ RapidAPI key not configured');
+    return null;
+  }
 
   try {
-    const url = `${EXERCISEDB_BASE_URL}/exercises/name/${encodeURIComponent(query)}`;
+    const url = `${EXERCISEDB_BASE_URL}/image?exerciseId=${exerciseId}&resolution=1080`;
+    console.log('🎬 Fetching GIF from:', url);
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -64,100 +116,44 @@ const searchExerciseDBQuery = async (query: string): Promise<any[] | null> => {
       },
     });
 
-    if (!response.ok) return null;
-    const data = await response.json();
-    return Array.isArray(data) && data.length > 0 ? data : null;
+    if (!response.ok) {
+      console.error('❌ Failed to fetch GIF:', response.status, response.statusText);
+      return null;
+    }
+
+    // Fetch as blob, then convert to base64
+    const blob = await response.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+    const base64 = arrayBufferToBase64(arrayBuffer);
+
+    // Return as data URI
+    const dataUri = `data:image/gif;base64,${base64}`;
+    console.log(`✅ GIF fetched successfully (${(base64.length / 1024).toFixed(1)} KB)`);
+
+    return dataUri;
   } catch (error) {
+    console.error('❌ Error fetching GIF:', error);
     return null;
   }
 };
 
 /**
  * Search ExerciseDB for a matching exercise by name
- * Uses multi-strategy search with fallbacks
- * Returns the GIF URL if found
+ * Uses fuzzy matching on local database, then fetches GIF
+ * Returns the GIF data URI if found
  */
 export const searchExerciseDBByName = async (exerciseName: string): Promise<string | null> => {
   console.log('🔍 Searching ExerciseDB for:', exerciseName);
 
-  if (!RAPIDAPI_KEY) {
-    console.error('❌ RapidAPI key not configured');
+  // Find exercise in database
+  const exercise = findExerciseByName(exerciseName);
+
+  if (!exercise) {
     return null;
   }
 
-  console.log('✅ RapidAPI Key loaded:', RAPIDAPI_KEY.substring(0, 10) + '...');
-
-  try {
-    // Clean up exercise name
-    const cleanName = exerciseName.toLowerCase().trim();
-
-    // Strategy 1: Try exact name
-    console.log('🎯 Strategy 1: Exact name -', cleanName);
-    let data = await searchExerciseDBQuery(cleanName);
-
-    // Strategy 2: Remove plural 's' (e.g., "hip bridges" → "hip bridge")
-    if (!data && cleanName.endsWith('s')) {
-      const singular = cleanName.slice(0, -1);
-      console.log('🎯 Strategy 2: Singular form -', singular);
-      data = await searchExerciseDBQuery(singular);
-    }
-
-    // Strategy 3: Try just the last word (often the main exercise name)
-    if (!data) {
-      const words = cleanName.split(/\s+/);
-      if (words.length > 1) {
-        const lastWord = words[words.length - 1];
-        console.log('🎯 Strategy 3: Last word -', lastWord);
-        data = await searchExerciseDBQuery(lastWord);
-      }
-    }
-
-    // Strategy 4: Try the first word
-    if (!data) {
-      const words = cleanName.split(/\s+/);
-      if (words.length > 1) {
-        const firstWord = words[0];
-        console.log('🎯 Strategy 4: First word -', firstWord);
-        data = await searchExerciseDBQuery(firstWord);
-      }
-    }
-
-    // Strategy 5: Try without common words (glute, cable, dumbbell, etc.)
-    if (!data) {
-      const commonWords = ['glute', 'cable', 'dumbbell', 'barbell', 'bodyweight', 'resistance', 'band'];
-      for (const word of commonWords) {
-        if (cleanName.includes(word)) {
-          const withoutCommon = cleanName.replace(word, '').trim();
-          if (withoutCommon) {
-            console.log(`🎯 Strategy 5: Without "${word}" -`, withoutCommon);
-            data = await searchExerciseDBQuery(withoutCommon);
-            if (data) break;
-          }
-        }
-      }
-    }
-
-    if (!data) {
-      console.warn('⚠️ No exercises found after all search strategies');
-      return null;
-    }
-
-    console.log('📦 ExerciseDB Response:', JSON.stringify(data).substring(0, 200) + '...');
-    console.log('📊 Found', data.length, 'exercises');
-
-    // Return first match's GIF URL
-    if (data[0].gifUrl) {
-      console.log('✅ Found GIF URL:', data[0].gifUrl);
-      console.log('📝 Exercise name in DB:', data[0].name);
-      return data[0].gifUrl;
-    }
-
-    console.warn('⚠️ No GIF URL in exercise data');
-    return null;
-  } catch (error) {
-    console.error('❌ Error searching ExerciseDB:', error);
-    return null;
-  }
+  // Fetch GIF using exercise ID
+  return fetchExerciseGif(exercise.id);
 };
 
 /**

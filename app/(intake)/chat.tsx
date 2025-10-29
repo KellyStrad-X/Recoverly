@@ -328,18 +328,23 @@ export default function ChatScreen() {
         {/* Input Bar */}
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Describe your pain or issue..."
-              placeholderTextColor="#8E8E93"
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={500}
-            />
-            <View style={{ width: 44, height: 36, backgroundColor: '#FF0000', borderRadius: 18, marginLeft: 8, justifyContent: 'center', alignItems: 'center' }}>
-              <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>MIC</Text>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                style={styles.input}
+                placeholder="Describe your pain or issue..."
+                placeholderTextColor="#8E8E93"
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={500}
+              />
             </View>
+            <TouchableOpacity
+              style={{ width: 36, height: 36, backgroundColor: '#FF0000', borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginRight: 8 }}
+              onPress={handleMicPress}
+            >
+              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>MIC</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.sendButton,
@@ -488,7 +493,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   input: {
-    flex: 1,
     color: '#FFFFFF',
     fontSize: 16,
     maxHeight: 100,

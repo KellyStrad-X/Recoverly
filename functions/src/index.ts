@@ -26,6 +26,10 @@ interface RedFlag {
 }
 
 interface RecoveryProtocol {
+  protocolName: string;
+  aiGeneratedLabel: string;
+  protocolSummary: string;
+  bodyRegion: string;
   description: string;
   exercises: Array<{
     name: string;
@@ -37,6 +41,8 @@ interface RecoveryProtocol {
   duration: string;
   frequency: string;
   disclaimer: string;
+  safetyNotes?: string[];
+  progressionNotes?: string;
 }
 
 interface GenerateProtocolResponse {
@@ -175,6 +181,10 @@ If user mentions ANY of these, respond with concern and recommend professional c
 PROTOCOL GENERATION:
 When ready to generate, create a JSON response with this structure:
 {
+  "protocolName": "Clear protocol name (e.g., 'Knee Mobility Protocol', 'Lower Back Strength Program')",
+  "aiGeneratedLabel": "Short dashboard label (e.g., 'Knee Pain Rehab', 'Lower Back Recovery')",
+  "protocolSummary": "2-3 sentence summary of what you understand about their condition and your recommended approach. This will be displayed at the top of their plan.",
+  "bodyRegion": "Specific body region (e.g., 'left_knee', 'lower_back', 'right_shoulder')",
   "description": "Brief 2-3 sentence overview of the recovery approach",
   "exercises": [
     {
@@ -187,8 +197,16 @@ When ready to generate, create a JSON response with this structure:
   ],
   "duration": "14 days",
   "frequency": "Daily",
+  "safetyNotes": ["Overall safety note 1", "Overall safety note 2"],
+  "progressionNotes": "When to progress, when to stop, when to seek help",
   "disclaimer": "This is general wellness guidance. Consult a healthcare provider if symptoms persist or worsen."
 }
+
+IMPORTANT FIELDS:
+- protocolName: Formal name for the plan
+- aiGeneratedLabel: 3-4 word label for dashboard card
+- protocolSummary: Your understanding + approach (example: "Based on our conversation, it sounds like you're experiencing knee pain during squats, likely due to limited mobility or weakness in the surrounding muscles. Here's a 2-week protocol focusing on knee stability and mobility to help reduce discomfort and improve function.")
+- bodyRegion: Use underscores for multi-word (left_knee, lower_back, right_shoulder)
 
 EXERCISE GUIDELINES:
 - ONLY bodyweight exercises (no equipment required)

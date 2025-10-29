@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Text, Button, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useAuthStore } from '@/stores/authStore';
+import { createConditionAndPlan } from '@/services/planService';
 
 type PlanType = 'monthly' | 'annual';
 
 export default function PaywallScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const user = useAuthStore((state) => state.user);
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('annual');
   const [loading, setLoading] = useState(false);
 
-  // Parse protocol preview from params
+  // Parse protocol preview and conversation history from params
   const protocolPreview = params.preview
     ? JSON.parse(params.preview as string)
     : null;
+
+  const conversationHistory = params.conversationHistory
+    ? JSON.parse(params.conversationHistory as string)
+    : [];
 
   const plans = {
     monthly: {
@@ -43,6 +50,11 @@ export default function PaywallScreen() {
   ];
 
   const handleSubscribe = async () => {
+    if (!user || !protocolPreview) {
+      Alert.alert('Error', 'Missing user or protocol data');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -50,14 +62,30 @@ export default function PaywallScreen() {
       // For now, simulate payment
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // TODO: Update user subscription status in Firestore
+      // TODO: Update user subscription status in Firestore after Stripe payment
       console.log('Subscription successful:', selectedPlan);
 
-      // Navigate to protocol details
-      // TODO: Create protocol detail screen
+      // Save condition and plan to Firestore
+      const { conditionId, planId } = await createConditionAndPlan(
+        user.uid,
+        conversationHistory.map((msg: any) => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp || new Date(),
+        })),
+        protocolPreview
+      );
+
+      console.log('Created condition and plan:', { conditionId, planId });
+
+      // Navigate to dashboard to see new card
       router.push('/(tabs)/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Subscription error:', error);
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to create recovery plan. Please try again.'
+      );
     } finally {
       setLoading(false);
     }

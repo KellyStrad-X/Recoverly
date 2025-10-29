@@ -280,11 +280,12 @@ export default function DashboardScreen() {
       // Navigate to plan detail screen (stub for now)
       router.push('/plan/new');
     } else {
-      // Navigate to paywall with protocol preview
+      // Navigate to paywall with protocol preview and conversation history
       router.push({
         pathname: '/(intake)/paywall',
         params: {
           preview: JSON.stringify(protocol),
+          conversationHistory: JSON.stringify(messages),
         },
       });
     }

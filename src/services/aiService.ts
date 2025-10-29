@@ -23,11 +23,17 @@ export interface Exercise {
 }
 
 export interface RecoveryProtocol {
+  protocolName: string;
+  aiGeneratedLabel: string;
+  protocolSummary: string;
+  bodyRegion: string;
   description: string;
   exercises: Exercise[];
   duration: string;
   frequency: string;
   disclaimer: string;
+  safetyNotes?: string[];
+  progressionNotes?: string;
 }
 
 export interface GenerateProtocolResponse {
@@ -35,6 +41,7 @@ export interface GenerateProtocolResponse {
   redFlags?: RedFlag[];
   shouldProceed: boolean;
   aiMessage?: string;
+  quickReplies?: string[];
   protocol?: RecoveryProtocol;
   requiresPaywall: boolean;
 }

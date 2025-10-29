@@ -105,7 +105,8 @@ export default function RootLayout() {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
           displayName: firebaseUser.displayName || profile?.displayName || 'User',
-          subscriptionStatus: profile?.subscriptionStatus || 'free',
+          // TEMPORARY: Fake subscription for testing - remove when Stripe is integrated
+          subscriptionStatus: 'free', // Change to 'active' to test paid flow
           subscriptionTier: profile?.subscriptionTier || null,
         });
       } else {

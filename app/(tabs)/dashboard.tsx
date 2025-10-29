@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     marginTop: 80,
-    marginBottom: 40,
+    marginBottom: 16,
   },
   logoImage: {
     width: 160,
@@ -474,6 +474,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     alignSelf: 'stretch',
     marginHorizontal: 0,
+    marginBottom: 8,
   },
   chatInput: {
     flex: 1,

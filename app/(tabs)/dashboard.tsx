@@ -176,7 +176,7 @@ export default function DashboardScreen() {
       let currentIndex = 0;
       let typeInterval: NodeJS.Timeout;
       let pauseTimeout: NodeJS.Timeout;
-      let clearTimeout: NodeJS.Timeout;
+      let resetTimeout: NodeJS.Timeout;
       let isCancelled = false;
 
       const typewriterLoop = () => {
@@ -192,7 +192,7 @@ export default function DashboardScreen() {
             pauseTimeout = setTimeout(() => {
               if (isCancelled) return;
               setTypewriterText('');
-              clearTimeout = setTimeout(() => {
+              resetTimeout = setTimeout(() => {
                 if (isCancelled) return;
                 currentIndex = 0;
                 typewriterLoop();
@@ -209,7 +209,7 @@ export default function DashboardScreen() {
         isCancelled = true;
         clearInterval(typeInterval);
         clearTimeout(pauseTimeout);
-        clearTimeout(clearTimeout);
+        clearTimeout(resetTimeout);
       };
     } else {
       setTypewriterText('');

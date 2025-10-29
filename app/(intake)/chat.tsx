@@ -328,16 +328,6 @@ export default function ChatScreen() {
         {/* Input Bar */}
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
-            <TouchableOpacity
-              style={[styles.micButton, isRecording && styles.micButtonRecording]}
-              onPress={handleMicPress}
-            >
-              <MaterialCommunityIcons
-                name={isRecording ? "microphone" : "microphone-outline"}
-                size={20}
-                color={isRecording ? '#FF3B30' : '#8E8E93'}
-              />
-            </TouchableOpacity>
             <TextInput
               style={styles.input}
               placeholder={isRecording ? "Listening..." : "Describe your pain or issue..."}
@@ -348,6 +338,16 @@ export default function ChatScreen() {
               maxLength={500}
               editable={!isRecording}
             />
+            <TouchableOpacity
+              style={[styles.micButton, isRecording && styles.micButtonRecording]}
+              onPress={handleMicPress}
+            >
+              <MaterialCommunityIcons
+                name={isRecording ? "microphone" : "microphone-outline"}
+                size={20}
+                color={isRecording ? '#FF3B30' : '#8E8E93'}
+              />
+            </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.sendButton,
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2C2C2E',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginLeft: 8,
   },
   micButtonRecording: {
     backgroundColor: 'rgba(255, 59, 48, 0.2)',

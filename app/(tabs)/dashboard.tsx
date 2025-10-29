@@ -711,11 +711,22 @@ export default function DashboardScreen() {
       {/* Pulsing Logo - Shows when keyboard is visible but chat not expanded */}
       {isKeyboardVisible && !isChatExpanded && (
         <>
+          {/* Agent Is Waiting Placard - Top Header */}
+          <Animated.View style={[styles.waitingPlacardContainer, { opacity: centerLogoOpacity }]}>
+            <View style={styles.waitingPlacard}>
+              <Text style={styles.waitingText}>Agent Is Waiting</Text>
+            </View>
+          </Animated.View>
+
           {/* Close Button - Top Right */}
-          <Animated.View style={{ opacity: centerLogoOpacity }}>
+          <Animated.View style={{ opacity: centerLogoOpacity }} pointerEvents="box-none">
             <TouchableOpacity
               style={styles.keyboardCloseButton}
-              onPress={() => Keyboard.dismiss()}
+              onPress={() => {
+                console.log('Close button pressed');
+                Keyboard.dismiss();
+              }}
+              activeOpacity={0.7}
             >
               <MaterialCommunityIcons name="close" size={24} color="#FFFFFF" />
             </TouchableOpacity>
@@ -736,11 +747,6 @@ export default function DashboardScreen() {
               style={styles.centerLogo}
               resizeMode="contain"
             />
-
-            {/* Agent Is Waiting Placard */}
-            <View style={styles.waitingPlacard}>
-              <Text style={styles.waitingText}>Agent Is Waiting</Text>
-            </View>
           </Animated.View>
         </>
       )}
@@ -1265,14 +1271,21 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1001,
+  },
+  waitingPlacardContainer: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
     alignItems: 'center',
     zIndex: 1000,
   },
   waitingPlacard: {
-    marginTop: 24,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: '#2C2C2E',
     borderWidth: 1,
     borderColor: 'rgba(102, 187, 106, 0.6)',
     borderRadius: 12,
@@ -1280,7 +1293,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   waitingText: {
-    color: '#66BB6A',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,

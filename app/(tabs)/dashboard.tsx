@@ -169,23 +169,48 @@ export default function DashboardScreen() {
     };
   }, [isChatExpanded, headerOpacity, logoTranslateY]);
 
-  // Typewriter effect for "Recoverly Agent is Waiting..."
+  // Typewriter effect for "Recoverly Agent is Waiting..." - Looping
   useEffect(() => {
     if (isKeyboardVisible && !isChatExpanded) {
       const fullText = 'Recoverly Agent is Waiting...';
       let currentIndex = 0;
+      let typeInterval: NodeJS.Timeout;
+      let pauseTimeout: NodeJS.Timeout;
+      let clearTimeout: NodeJS.Timeout;
+      let isCancelled = false;
+
+      const typewriterLoop = () => {
+        if (isCancelled) return;
+
+        typeInterval = setInterval(() => {
+          if (currentIndex < fullText.length) {
+            setTypewriterText(fullText.substring(0, currentIndex + 1));
+            currentIndex++;
+          } else {
+            // Finished spelling
+            clearInterval(typeInterval);
+            pauseTimeout = setTimeout(() => {
+              if (isCancelled) return;
+              setTypewriterText('');
+              clearTimeout = setTimeout(() => {
+                if (isCancelled) return;
+                currentIndex = 0;
+                typewriterLoop();
+              }, 500);
+            }, 1000);
+          }
+        }, 50);
+      };
+
       setTypewriterText('');
+      typewriterLoop();
 
-      const interval = setInterval(() => {
-        if (currentIndex < fullText.length) {
-          setTypewriterText(fullText.substring(0, currentIndex + 1));
-          currentIndex++;
-        } else {
-          clearInterval(interval);
-        }
-      }, 50); // 50ms per character for quick spelling
-
-      return () => clearInterval(interval);
+      return () => {
+        isCancelled = true;
+        clearInterval(typeInterval);
+        clearTimeout(pauseTimeout);
+        clearTimeout(clearTimeout);
+      };
     } else {
       setTypewriterText('');
     }

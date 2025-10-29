@@ -41,10 +41,7 @@ export default function DashboardScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   // Animation values
-  const chatTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const chatOpacity = useRef(new Animated.Value(0)).current;
-  const headerOpacity = useRef(new Animated.Value(1)).current;
-  const headerTranslateY = useRef(new Animated.Value(0)).current;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -56,61 +53,24 @@ export default function DashboardScreen() {
   }, [messages, isChatExpanded]);
 
   const expandToChat = () => {
-    console.log('🎬 expandToChat called');
     setIsChatExpanded(true);
-    console.log('✅ isChatExpanded set to true');
 
-    Animated.parallel([
-      Animated.timing(chatTranslateY, {
-        toValue: 0,
-        duration: 350,
-        useNativeDriver: true,
-      }),
-      Animated.timing(chatOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(headerOpacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(headerTranslateY, {
-        toValue: -20,
-        duration: 350,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      console.log('✨ Animation complete');
-    });
+    // Simple fade-in
+    Animated.timing(chatOpacity, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
   };
 
   const collapseToInput = () => {
     Keyboard.dismiss();
 
-    Animated.parallel([
-      Animated.timing(chatTranslateY, {
-        toValue: SCREEN_HEIGHT,
-        duration: 350,
-        useNativeDriver: true,
-      }),
-      Animated.timing(chatOpacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(headerOpacity, {
-        toValue: 1,
-        duration: 350,
-        useNativeDriver: true,
-      }),
-      Animated.timing(headerTranslateY, {
-        toValue: 0,
-        duration: 350,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
+    Animated.timing(chatOpacity, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
       setIsChatExpanded(false);
       setMessages([]);
       setInputText('');
@@ -179,8 +139,6 @@ export default function DashboardScreen() {
   const handleStartChat = () => {
     if (!inputText.trim()) return;
 
-    console.log('🚀 handleStartChat called');
-
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -192,8 +150,6 @@ export default function DashboardScreen() {
     const currentInput = inputText.trim();
     setMessages([userMessage]);
     setInputText('');
-
-    console.log('📝 Message added:', userMessage.content);
 
     // Expand to chat with animation
     expandToChat();
@@ -309,8 +265,6 @@ export default function DashboardScreen() {
     );
   };
 
-  console.log('🔄 Render - isChatExpanded:', isChatExpanded, 'messages:', messages.length);
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Dashboard Content */}
@@ -341,7 +295,7 @@ export default function DashboardScreen() {
             <View style={styles.emptyState}>
               <View style={styles.emptyIconContainer}>
                 <Image
-                  source={require('../../assets/icon.png')}
+                  source={require('../../misc/RecoverlyLogoHD.png')}
                   style={styles.logoImage}
                   resizeMode="contain"
                 />
@@ -387,68 +341,71 @@ export default function DashboardScreen() {
 
       {/* Chat Overlay - OUTSIDE KeyboardAvoidingView */}
       {isChatExpanded && (
-          <View
+          <Animated.View
             style={[
               styles.chatOverlay,
               {
-                // NO ANIMATION - just show it
+                opacity: chatOpacity,
               },
             ]}
           >
-            <View style={{ position: 'absolute', top: 200, left: 100, width: 200, height: 100, backgroundColor: 'yellow', zIndex: 9999 }}>
-              <Text style={{ color: 'black', fontSize: 20 }}>OVERLAY IS HERE!</Text>
-            </View>
-            {/* Close Button */}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={collapseToInput}
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={{ flex: 1 }}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
-              <MaterialCommunityIcons name="close" size={24} color="#FF0000" />
-            </TouchableOpacity>
+              {/* Close Button */}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={collapseToInput}
+              >
+                <MaterialCommunityIcons name="close" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
 
-            {/* Messages */}
-            <View style={styles.messagesContainer}>
-              <FlatList
-                ref={flatListRef}
-                data={messages}
-                renderItem={renderMessage}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.messagesList}
-                showsVerticalScrollIndicator={false}
-                ListFooterComponent={renderTypingIndicator}
-              />
-            </View>
-
-            {/* Input Bar */}
-            <View style={styles.inputContainer}>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Describe your pain or issue..."
-                  placeholderTextColor="#8E8E93"
-                  value={inputText}
-                  onChangeText={setInputText}
-                  multiline
-                  maxLength={500}
-                  keyboardAppearance="dark"
+              {/* Messages */}
+              <View style={styles.messagesContainer}>
+                <FlatList
+                  ref={flatListRef}
+                  data={messages}
+                  renderItem={renderMessage}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={styles.messagesList}
+                  showsVerticalScrollIndicator={false}
+                  ListFooterComponent={renderTypingIndicator}
                 />
-                <TouchableOpacity
-                  style={[
-                    styles.sendButton,
-                    !inputText.trim() && styles.sendButtonDisabled,
-                  ]}
-                  onPress={handleSend}
-                  disabled={!inputText.trim()}
-                >
-                  <MaterialCommunityIcons
-                    name="send"
-                    size={20}
-                    color={inputText.trim() ? '#000000' : '#8E8E93'}
-                  />
-                </TouchableOpacity>
               </View>
-            </View>
-          </View>
+
+              {/* Input Bar */}
+              <View style={styles.inputContainer}>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Describe your pain or issue..."
+                    placeholderTextColor="#8E8E93"
+                    value={inputText}
+                    onChangeText={setInputText}
+                    multiline
+                    maxLength={500}
+                    keyboardAppearance="dark"
+                  />
+                  <TouchableOpacity
+                    style={[
+                      styles.sendButton,
+                      !inputText.trim() && styles.sendButtonDisabled,
+                    ]}
+                    onPress={handleSend}
+                    disabled={!inputText.trim()}
+                  >
+                    <MaterialCommunityIcons
+                      name="send"
+                      size={20}
+                      color={inputText.trim() ? '#000000' : '#8E8E93'}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </KeyboardAvoidingView>
+          </Animated.View>
         )}
     </SafeAreaView>
   );
@@ -499,8 +456,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   logoImage: {
-    width: 60,
-    height: 60,
+    width: 70,
+    height: 70,
   },
   emptyTitle: {
     color: '#FFFFFF',
@@ -522,8 +479,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    alignSelf: 'stretch',
-    marginHorizontal: 12,
+    width: '95%',
+    alignSelf: 'center',
   },
   chatInput: {
     flex: 1,
@@ -551,7 +508,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#FF0000', // DEBUG: Bright red so we can see it
+    backgroundColor: '#000000',
     overflow: 'hidden',
   },
   closeButton: {
@@ -561,10 +518,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF', // DEBUG: White so we can see it
+    backgroundColor: '#1C1C1E',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
+    opacity: 0.9,
   },
   messagesContainer: {
     flex: 1,

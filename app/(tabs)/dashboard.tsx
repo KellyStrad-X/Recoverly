@@ -710,21 +710,39 @@ export default function DashboardScreen() {
 
       {/* Pulsing Logo - Shows when keyboard is visible but chat not expanded */}
       {isKeyboardVisible && !isChatExpanded && (
-        <Animated.View
-          style={[
-            styles.centerLogoContainer,
-            {
-              opacity: centerLogoOpacity,
-              transform: [{ scale: pulseAnim }],
-            },
-          ]}
-        >
-          <Image
-            source={require('../../misc/RecoverlyLogoHD.png')}
-            style={styles.centerLogo}
-            resizeMode="contain"
-          />
-        </Animated.View>
+        <>
+          {/* Close Button - Top Right */}
+          <Animated.View style={{ opacity: centerLogoOpacity }}>
+            <TouchableOpacity
+              style={styles.keyboardCloseButton}
+              onPress={() => Keyboard.dismiss()}
+            >
+              <MaterialCommunityIcons name="close" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* Pulsing Logo */}
+          <Animated.View
+            style={[
+              styles.centerLogoContainer,
+              {
+                opacity: centerLogoOpacity,
+                transform: [{ scale: pulseAnim }],
+              },
+            ]}
+          >
+            <Image
+              source={require('../../misc/RecoverlyLogoHD.png')}
+              style={styles.centerLogo}
+              resizeMode="contain"
+            />
+
+            {/* Agent Is Waiting Placard */}
+            <View style={styles.waitingPlacard}>
+              <Text style={styles.waitingText}>Agent Is Waiting</Text>
+            </View>
+          </Animated.View>
+        </>
       )}
 
       {/* Chat Overlay - OUTSIDE KeyboardAvoidingView */}
@@ -1239,5 +1257,32 @@ const styles = StyleSheet.create({
   centerLogo: {
     width: 120,
     height: 120,
+  },
+  keyboardCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  waitingPlacard: {
+    marginTop: 24,
+    backgroundColor: '#0A0A0A',
+    borderWidth: 1,
+    borderColor: 'rgba(102, 187, 106, 0.6)',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  waitingText: {
+    color: '#66BB6A',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
 });

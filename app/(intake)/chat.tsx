@@ -329,16 +329,6 @@ export default function ChatScreen() {
         {/* Input Bar */}
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
-            <TextInput
-              style={[styles.input, { flex: 1 }]}
-              placeholder={isRecording ? "Listening..." : "Describe your pain or issue..."}
-              placeholderTextColor="#8E8E93"
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={500}
-              editable={!isRecording}
-            />
             <TouchableOpacity
               style={[styles.micButton, isRecording && styles.micButtonRecording]}
               onPress={handleMicPress}
@@ -346,9 +336,21 @@ export default function ChatScreen() {
               <MaterialCommunityIcons
                 name={isRecording ? "microphone" : "microphone-outline"}
                 size={20}
-                color={isRecording ? '#FFFFFF' : '#8E8E93'}
+                color="#FFFFFF"
               />
             </TouchableOpacity>
+            <View style={{ flex: 1, marginHorizontal: 8 }}>
+              <TextInput
+                style={styles.input}
+                placeholder={isRecording ? "Listening..." : "Describe your pain or issue..."}
+                placeholderTextColor="#8E8E93"
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={500}
+                editable={!isRecording}
+              />
+            </View>
             <TouchableOpacity
               style={[
                 styles.sendButton,
@@ -497,22 +499,25 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   input: {
+    width: '100%',
     color: '#FFFFFF',
     fontSize: 16,
     maxHeight: 100,
     paddingVertical: 8,
   },
   micButton: {
+    minWidth: 36,
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#FF0000',  // Bright red for visibility
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
+    marginLeft: 0,
+    marginRight: 8,
   },
   micButtonRecording: {
-    backgroundColor: 'rgba(255, 59, 48, 0.2)',
+    backgroundColor: '#00FF00',  // Green when recording
   },
   sendButton: {
     width: 36,

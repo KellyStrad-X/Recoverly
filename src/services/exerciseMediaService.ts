@@ -53,17 +53,25 @@ const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours per YouTube ToS
  * Returns the GIF URL if found
  */
 export const searchExerciseDBByName = async (exerciseName: string): Promise<string | null> => {
+  console.log('🔍 Searching ExerciseDB for:', exerciseName);
+
   if (!RAPIDAPI_KEY) {
-    console.warn('RapidAPI key not configured');
+    console.error('❌ RapidAPI key not configured');
     return null;
   }
+
+  console.log('✅ RapidAPI Key loaded:', RAPIDAPI_KEY.substring(0, 10) + '...');
 
   try {
     // Clean up exercise name for search
     const searchQuery = exerciseName.toLowerCase().trim();
+    const url = `${EXERCISEDB_BASE_URL}/exercises/name/${encodeURIComponent(searchQuery)}`;
+
+    console.log('📡 ExerciseDB Request URL:', url);
+    console.log('📡 Search query:', searchQuery);
 
     // Search ExerciseDB by name
-    const response = await fetch(`${EXERCISEDB_BASE_URL}/exercises/name/${encodeURIComponent(searchQuery)}`, {
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'X-RapidAPI-Key': RAPIDAPI_KEY,
@@ -71,21 +79,28 @@ export const searchExerciseDBByName = async (exerciseName: string): Promise<stri
       },
     });
 
+    console.log('📥 ExerciseDB Response status:', response.status, response.statusText);
+
     if (!response.ok) {
-      console.error('ExerciseDB API error:', response.status);
+      const errorText = await response.text().catch(() => 'Could not read error');
+      console.error('❌ ExerciseDB API error:', response.status, errorText);
       return null;
     }
 
     const data = await response.json();
+    console.log('📦 ExerciseDB Response data:', JSON.stringify(data).substring(0, 200) + '...');
+    console.log('📊 Found', data?.length || 0, 'exercises');
 
     // Return first match's GIF URL
     if (data && data.length > 0 && data[0].gifUrl) {
+      console.log('✅ Found GIF URL:', data[0].gifUrl);
       return data[0].gifUrl;
     }
 
+    console.warn('⚠️ No GIF found in ExerciseDB response');
     return null;
   } catch (error) {
-    console.error('Error searching ExerciseDB:', error);
+    console.error('❌ Error searching ExerciseDB:', error);
     return null;
   }
 };
@@ -262,7 +277,8 @@ export const fetchExerciseMedia = async (
   exerciseId: string,
   exerciseName: string
 ): Promise<ExerciseMedia> => {
-  console.log(`Fetching media for: ${exerciseName}`);
+  console.log(`\n🎬 ========== FETCHING MEDIA ==========`);
+  console.log(`📝 Exercise: ${exerciseName} (ID: ${exerciseId})`);
 
   const media: ExerciseMedia = {
     exerciseId,
@@ -270,11 +286,13 @@ export const fetchExerciseMedia = async (
     lastFetched: new Date(),
   };
 
+  console.log('🚀 Starting parallel fetch (GIF + YouTube)...');
+
   // Fetch both in parallel for speed
   const [gifUrl, youtubeResult] = await Promise.all([
     // ExerciseDB GIF - primary visual
     searchExerciseDBByName(exerciseName).catch((error) => {
-      console.error('Error fetching ExerciseDB GIF:', error);
+      console.error('❌ Error fetching ExerciseDB GIF:', error);
       return null;
     }),
 
@@ -309,17 +327,23 @@ export const fetchExerciseMedia = async (
   ]);
 
   // Populate media object
+  console.log('\n📊 ========== RESULTS ==========');
   if (gifUrl) {
     media.gifUrl = gifUrl;
-    console.log(`✅ Found GIF for ${exerciseName}`);
+    console.log(`✅ GIF: Found (${gifUrl.substring(0, 50)}...)`);
+  } else {
+    console.log(`❌ GIF: Not found`);
   }
 
   if (youtubeResult) {
     media.youtubeVideoId = youtubeResult.videoId;
     media.youtubeVideoTitle = youtubeResult.title;
-    console.log(`✅ Found YouTube video for ${exerciseName}`);
+    console.log(`✅ YouTube: Found (${youtubeResult.videoId})`);
+  } else {
+    console.log(`❌ YouTube: Not found`);
   }
 
+  console.log(`========== END FETCH ==========\n`);
   return media;
 };
 

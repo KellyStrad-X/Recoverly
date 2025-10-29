@@ -313,13 +313,13 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        {/* Dashboard Content */}
-        {!isChatExpanded && (
+      {/* Dashboard Content */}
+      {!isChatExpanded && (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoid}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <Animated.View
               style={[
@@ -382,10 +382,11 @@ export default function DashboardScreen() {
               </View>
             </View>
           </ScrollView>
-        )}
+        </KeyboardAvoidingView>
+      )}
 
-        {/* Chat Overlay - Morphed from input field */}
-        {isChatExpanded ? (
+      {/* Chat Overlay - OUTSIDE KeyboardAvoidingView */}
+      {isChatExpanded && (
           <Animated.View
             style={[
               styles.chatOverlay,
@@ -449,10 +450,7 @@ export default function DashboardScreen() {
               </View>
             </View>
           </Animated.View>
-        ) : (
-          <Text style={{ position: 'absolute', top: 200, color: 'white', fontSize: 20 }}>Chat NOT expanded</Text>
         )}
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

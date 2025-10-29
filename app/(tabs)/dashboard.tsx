@@ -12,6 +12,7 @@ import {
   Alert,
   Keyboard,
   Dimensions,
+  Image,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -40,11 +41,10 @@ export default function DashboardScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   // Animation values
-  const chatContainerHeight = useRef(new Animated.Value(0)).current;
+  const chatTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const chatOpacity = useRef(new Animated.Value(0)).current;
   const headerOpacity = useRef(new Animated.Value(1)).current;
   const headerTranslateY = useRef(new Animated.Value(0)).current;
-  const inputContainerScale = useRef(new Animated.Value(1)).current;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -59,10 +59,10 @@ export default function DashboardScreen() {
     setIsChatExpanded(true);
 
     Animated.parallel([
-      Animated.timing(chatContainerHeight, {
-        toValue: SCREEN_HEIGHT,
+      Animated.timing(chatTranslateY, {
+        toValue: 0,
         duration: 350,
-        useNativeDriver: false,
+        useNativeDriver: true,
       }),
       Animated.timing(chatOpacity, {
         toValue: 1,
@@ -86,10 +86,10 @@ export default function DashboardScreen() {
     Keyboard.dismiss();
 
     Animated.parallel([
-      Animated.timing(chatContainerHeight, {
-        toValue: 0,
+      Animated.timing(chatTranslateY, {
+        toValue: SCREEN_HEIGHT,
         duration: 350,
-        useNativeDriver: false,
+        useNativeDriver: true,
       }),
       Animated.timing(chatOpacity, {
         toValue: 0,
@@ -330,7 +330,11 @@ export default function DashboardScreen() {
 
             <View style={styles.emptyState}>
               <View style={styles.emptyIconContainer}>
-                {/* Muscle emoji removed */}
+                <Image
+                  source={require('@/assets/icon.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
               </View>
               <Text variant="titleLarge" style={styles.emptyTitle}>
                 No Active Protocols
@@ -378,7 +382,7 @@ export default function DashboardScreen() {
             style={[
               styles.chatOverlay,
               {
-                height: chatContainerHeight,
+                transform: [{ translateY: chatTranslateY }],
                 opacity: chatOpacity,
               },
             ]}
@@ -482,6 +486,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
+    overflow: 'hidden',
+  },
+  logoImage: {
+    width: 60,
+    height: 60,
   },
   emptyTitle: {
     color: '#FFFFFF',
@@ -503,7 +512,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    width: '95%',
+    alignSelf: 'stretch',
+    marginHorizontal: 12,
   },
   chatInput: {
     flex: 1,
@@ -530,8 +540,8 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
+    bottom: 0,
     backgroundColor: '#000000',
-    borderRadius: 24,
     overflow: 'hidden',
   },
   closeButton: {

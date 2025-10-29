@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   Animated,
@@ -28,7 +27,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Carousel constants
-const CARD_HEIGHT = 100;
+const CARD_HEIGHT = 70;
 const CARD_SPACING = 16;
 
 interface Message {
@@ -394,9 +393,6 @@ export default function DashboardScreen() {
               <Text style={styles.carouselCardTitle}>
                 {item.aiGeneratedLabel || item.protocolName}
               </Text>
-              <Text style={styles.carouselCardSubtitle}>
-                Day {item.currentDay + 1} • {item.sessionsCompleted} sessions
-              </Text>
             </View>
 
             {/* Placeholder circular progress */}
@@ -543,11 +539,7 @@ export default function DashboardScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            scrollEnabled={false}
-          >
+          <View style={styles.scrollContent}>
             <Animated.View style={[styles.header, { opacity: headerOpacity }]}>
               <View style={styles.headerContent}>
                 <View>
@@ -631,7 +623,7 @@ export default function DashboardScreen() {
                 </Text>
               </Animated.View>
             )}
-          </ScrollView>
+          </View>
 
           {/* Inline Chat Input - Positioned at bottom */}
           <View style={styles.chatInputContainer}>
@@ -1070,8 +1062,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   smallLogo: {
-    width: 40,
-    height: 40,
+    width: 56,
+    height: 56,
   },
   // Vertical Carousel Styles
   carouselContainer: {
@@ -1079,12 +1071,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   carouselCardWrapper: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 12,
     marginBottom: CARD_SPACING,
   },
   carouselCard: {
     height: CARD_HEIGHT,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#1C1C1E',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(102, 187, 106, 0.6)',

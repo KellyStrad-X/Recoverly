@@ -464,6 +464,9 @@ export default function DashboardScreen() {
       ? Math.round((item.sessionsCompleted / (item.sessionsCompleted + 1)) * 100)
       : 0;
 
+    // Don't add marginRight to the last card
+    const isLastCard = index === activePlans.length - 1;
+
     return (
       <Animated.View
         style={[
@@ -471,6 +474,7 @@ export default function DashboardScreen() {
           {
             opacity,
             transform: [{ scale }],
+            marginRight: isLastCard ? 0 : CARD_SPACING,
           },
         ]}
       >
@@ -672,7 +676,7 @@ export default function DashboardScreen() {
 
             {/* Horizontal Carousel - Active Plans */}
             {!loadingPlans && activePlans.length > 0 && (
-              <Animated.View style={{ opacity: dashboardContentOpacity }}>
+              <Animated.View style={{ opacity: dashboardContentOpacity, marginHorizontal: -24 }}>
                 <View style={styles.carouselContainer}>
                   <Animated.FlatList
                     ref={carouselRef}
@@ -685,7 +689,7 @@ export default function DashboardScreen() {
                     decelerationRate="fast"
                     snapToAlignment="center"
                     contentContainerStyle={{
-                      paddingHorizontal: (SCREEN_WIDTH - CARD_WIDTH) / 2,
+                      paddingHorizontal: SIDE_PADDING,
                     }}
                     onScroll={Animated.event(
                       [{ nativeEvent: { contentOffset: { x: scrollX } } }],
@@ -1211,7 +1215,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   carouselCardWrapper: {
-    marginRight: CARD_SPACING,
+    // marginRight is now handled dynamically in renderPlanCard
   },
   carouselCard: {
     width: CARD_WIDTH,

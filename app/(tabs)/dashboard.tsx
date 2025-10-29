@@ -637,34 +637,32 @@ export default function DashboardScreen() {
           </View>
 
           {/* Inline Chat Input - Positioned at bottom */}
-          <View style={styles.inputWrapper}>
-            <View style={styles.chatInputContainer}>
-              <TextInput
-                style={styles.chatInput}
-                placeholder="Describe your pain or issue..."
-                placeholderTextColor="#8E8E93"
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                maxLength={500}
-                keyboardAppearance="dark"
-                blurOnSubmit={false}
+          <View style={styles.chatInputContainer}>
+            <TextInput
+              style={styles.chatInput}
+              placeholder="Describe your pain or issue..."
+              placeholderTextColor="#8E8E93"
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
+              keyboardAppearance="dark"
+              blurOnSubmit={false}
+            />
+            <TouchableOpacity
+              style={[
+                styles.chatSendButton,
+                !inputText.trim() && styles.chatSendButtonDisabled,
+              ]}
+              onPress={handleStartChat}
+              disabled={!inputText.trim()}
+            >
+              <MaterialCommunityIcons
+                name="send"
+                size={20}
+                color={inputText.trim() ? '#000000' : '#8E8E93'}
               />
-              <TouchableOpacity
-                style={[
-                  styles.chatSendButton,
-                  !inputText.trim() && styles.chatSendButtonDisabled,
-                ]}
-                onPress={handleStartChat}
-                disabled={!inputText.trim()}
-              >
-                <MaterialCommunityIcons
-                  name="send"
-                  size={20}
-                  color={inputText.trim() ? '#000000' : '#8E8E93'}
-                />
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       )}
@@ -793,11 +791,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     fontSize: 15,
   },
-  inputWrapper: {
-    backgroundColor: '#000000',
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
   chatInputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -806,6 +799,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginHorizontal: 24,
+    marginBottom: 12,
   },
   chatInput: {
     flex: 1,

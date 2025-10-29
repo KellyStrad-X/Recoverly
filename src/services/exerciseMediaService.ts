@@ -90,17 +90,17 @@ export const searchYouTubeVideo = async (
   // Build search query - add "physical therapy" for better results
   const searchQuery = `${exerciseName} physical therapy exercise tutorial`;
 
-  // Try with full filters first, fall back to basic search if that fails
+  // Try with duration filter first, fall back to basic search if that fails
+  // Note: videoEmbeddable filter is unreliable, so we handle embed errors in the UI instead
   const searchConfigs = [
     {
-      name: 'full',
+      name: 'with-duration',
       params: {
         part: 'snippet',
         q: searchQuery,
         type: 'video',
         maxResults: '1',
         videoDuration: 'short', // Prefer short videos (< 4 min)
-        videoEmbeddable: 'true',
         key: YOUTUBE_API_KEY,
       },
     },

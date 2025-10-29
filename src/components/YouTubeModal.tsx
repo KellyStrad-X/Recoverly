@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
+  Linking,
+  Alert,
 } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 
@@ -21,8 +23,49 @@ interface Props {
 }
 
 export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: Props) {
-  // YouTube embed URL
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&modestbranding=1&rel=0`;
+  const [embedError, setEmbedError] = useState(false);
+
+  // Decode HTML entities in title (e.g., &#39; -> ')
+  const decodeHTMLEntities = (text: string) => {
+    return text
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>');
+  };
+
+  const decodedTitle = decodeHTMLEntities(videoTitle);
+
+  // YouTube embed URL with additional parameters to improve compatibility
+  // Using nocookie domain and additional embed parameters
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&modestbranding=1&rel=0&fs=1&playsinline=1`;
+
+  // Handle opening video in YouTube app
+  const openInYouTube = async () => {
+    const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const youtubeAppUrl = `vnd.youtube://watch?v=${videoId}`;
+
+    try {
+      // Try YouTube app first
+      const canOpen = await Linking.canOpenURL(youtubeAppUrl);
+      if (canOpen) {
+        await Linking.openURL(youtubeAppUrl);
+      } else {
+        // Fallback to browser
+        await Linking.openURL(youtubeUrl);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Could not open YouTube');
+    }
+  };
+
+  // Reset error state when modal opens
+  React.useEffect(() => {
+    if (visible) {
+      setEmbedError(false);
+    }
+  }, [visible]);
 
   return (
     <Modal
@@ -40,7 +83,7 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
             <View style={styles.dragHandle} />
             <View style={styles.headerContent}>
               <Text style={styles.title} numberOfLines={2}>
-                {videoTitle}
+                {decodedTitle}
               </Text>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <MaterialCommunityIcons name="close" size={24} color="#FFFFFF" />
@@ -50,14 +93,45 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
 
           {/* Video Player */}
           <View style={styles.videoContainer}>
-            <WebView
-              source={{ uri: embedUrl }}
-              allowsFullscreenVideo
-              mediaPlaybackRequiresUserAction={false}
-              style={styles.webview}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-            />
+            {embedError ? (
+              <View style={styles.errorContainer}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#8E8E93" />
+                <Text style={styles.errorTitle}>Video Cannot Be Embedded</Text>
+                <Text style={styles.errorText}>
+                  This video's owner has disabled embedding. Tap below to watch on YouTube.
+                </Text>
+                <Button
+                  mode="contained"
+                  onPress={openInYouTube}
+                  style={styles.youtubeButton}
+                  labelStyle={styles.youtubeButtonLabel}
+                  icon="youtube"
+                >
+                  Open in YouTube
+                </Button>
+              </View>
+            ) : (
+              <WebView
+                source={{ uri: embedUrl }}
+                allowsFullscreenVideo
+                mediaPlaybackRequiresUserAction={false}
+                style={styles.webview}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                onError={(syntheticEvent) => {
+                  const { nativeEvent } = syntheticEvent;
+                  console.warn('WebView error:', nativeEvent);
+                  setEmbedError(true);
+                }}
+                onHttpError={(syntheticEvent) => {
+                  const { nativeEvent } = syntheticEvent;
+                  console.warn('WebView HTTP error:', nativeEvent.statusCode);
+                  if (nativeEvent.statusCode >= 400) {
+                    setEmbedError(true);
+                  }
+                }}
+              />
+            )}
           </View>
 
           {/* Info */}
@@ -131,6 +205,36 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    backgroundColor: '#000000',
+  },
+  errorTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: '#8E8E93',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  youtubeButton: {
+    backgroundColor: '#FF0000',
+    borderRadius: 8,
+  },
+  youtubeButtonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   infoContainer: {
     flexDirection: 'row',

@@ -56,7 +56,9 @@ export default function DashboardScreen() {
   }, [messages, isChatExpanded]);
 
   const expandToChat = () => {
+    console.log('🎬 expandToChat called');
     setIsChatExpanded(true);
+    console.log('✅ isChatExpanded set to true');
 
     Animated.parallel([
       Animated.timing(chatTranslateY, {
@@ -79,7 +81,9 @@ export default function DashboardScreen() {
         duration: 350,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]).start(() => {
+      console.log('✨ Animation complete');
+    });
   };
 
   const collapseToInput = () => {
@@ -175,6 +179,8 @@ export default function DashboardScreen() {
   const handleStartChat = () => {
     if (!inputText.trim()) return;
 
+    console.log('🚀 handleStartChat called');
+
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -186,6 +192,8 @@ export default function DashboardScreen() {
     const currentInput = inputText.trim();
     setMessages([userMessage]);
     setInputText('');
+
+    console.log('📝 Message added:', userMessage.content);
 
     // Expand to chat with animation
     expandToChat();
@@ -353,8 +361,6 @@ export default function DashboardScreen() {
                   onChangeText={setInputText}
                   multiline
                   maxLength={500}
-                  returnKeyType="send"
-                  onSubmitEditing={handleStartChat}
                   keyboardAppearance="dark"
                 />
                 <TouchableOpacity
@@ -392,7 +398,7 @@ export default function DashboardScreen() {
               style={styles.closeButton}
               onPress={collapseToInput}
             >
-              <MaterialCommunityIcons name="close" size={24} color="#000000" />
+              <MaterialCommunityIcons name="close" size={24} color="#FF0000" />
             </TouchableOpacity>
 
             {/* Messages */}
@@ -541,7 +547,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#000000',
+    backgroundColor: '#FF0000', // DEBUG: Bright red so we can see it
     overflow: 'hidden',
   },
   closeButton: {
@@ -551,11 +557,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#FFFFFF', // DEBUG: White so we can see it
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
-    opacity: 0.8,
   },
   messagesContainer: {
     flex: 1,

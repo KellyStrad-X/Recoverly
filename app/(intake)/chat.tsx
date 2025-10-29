@@ -342,11 +342,7 @@ export default function ChatScreen() {
               style={[styles.micButton, isRecording && styles.micButtonRecording]}
               onPress={handleMicPress}
             >
-              <MaterialCommunityIcons
-                name={isRecording ? "microphone" : "microphone-outline"}
-                size={20}
-                color={isRecording ? '#FF3B30' : '#8E8E93'}
-              />
+              <Text style={{ color: '#FFFFFF', fontSize: 12 }}>MIC</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -506,13 +502,15 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#FF3B30',  // Made it bright RED to be super visible
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',  // White border to make it even more obvious
   },
   micButtonRecording: {
-    backgroundColor: 'rgba(255, 59, 48, 0.2)',
+    backgroundColor: '#66BB6A',  // Green when recording
   },
   sendButton: {
     width: 36,

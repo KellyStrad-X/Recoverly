@@ -67,18 +67,25 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
       const sessionNumber = plan.sessionsCompleted + 1;
       const weekNumber = Math.ceil(sessionNumber / 7);
 
-      // Create session log
-      await createSessionLog({
+      // Create session log data
+      const sessionData: any = {
         userId: user.uid,
         planId: plan.id,
         conditionId: plan.conditionId,
         prePainScore,
         postPainScore,
         exercisesCompleted: Array.from(completedExercises),
-        notes: notes.trim() || undefined,
         sessionNumber,
         weekNumber,
-      });
+      };
+
+      // Only include notes if they exist
+      if (notes.trim()) {
+        sessionData.notes = notes.trim();
+      }
+
+      // Create session log
+      await createSessionLog(sessionData);
 
       // Update plan progress
       await updatePlanProgress(plan.id, {

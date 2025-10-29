@@ -330,32 +330,28 @@ export default function ChatScreen() {
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder={isRecording ? "Listening..." : "Describe your pain or issue..."}
+              placeholder="Describe your pain or issue..."
               placeholderTextColor="#8E8E93"
               value={inputText}
               onChangeText={setInputText}
               multiline
               maxLength={500}
-              editable={!isRecording}
             />
-            <TouchableOpacity
-              style={[styles.micButton, isRecording && styles.micButtonRecording]}
-              onPress={handleMicPress}
-            >
-              <Text style={{ color: '#FFFFFF', fontSize: 12 }}>MIC</Text>
-            </TouchableOpacity>
+            <View style={{ width: 44, height: 36, backgroundColor: '#FF0000', borderRadius: 18, marginLeft: 8, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>MIC</Text>
+            </View>
             <TouchableOpacity
               style={[
                 styles.sendButton,
                 !inputText.trim() && styles.sendButtonDisabled,
               ]}
               onPress={handleSend}
-              disabled={!inputText.trim() || isRecording}
+              disabled={!inputText.trim()}
             >
               <MaterialCommunityIcons
                 name="send"
                 size={20}
-                color={inputText.trim() && !isRecording ? '#000000' : '#8E8E93'}
+                color={inputText.trim() ? '#000000' : '#8E8E93'}
               />
             </TouchableOpacity>
           </View>

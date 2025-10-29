@@ -1,6 +1,10 @@
 # Compiled JavaScript files
-<<<<<<< Updated upstream
 lib/
+lib/**/*.js
+lib/**/*.js.map
+
+# TypeScript v1 declaration files
+typings/
 
 # Node modules
 node_modules/
@@ -15,14 +19,4 @@ node_modules/
 
 # Logs
 *.log
-=======
-lib/**/*.js
-lib/**/*.js.map
-
-# TypeScript v1 declaration files
-typings/
-
-# Node.js dependency directory
-node_modules/
 *.local
->>>>>>> Stashed changes

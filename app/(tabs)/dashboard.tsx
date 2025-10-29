@@ -29,7 +29,7 @@ const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 // Carousel constants
 const SIDE_PADDING = 24;
 const CARD_SPACING = 16;
-const CARD_WIDTH = SCREEN_WIDTH - (SIDE_PADDING * 2) - CARD_SPACING;
+const CARD_WIDTH = SCREEN_WIDTH - (SIDE_PADDING * 2);
 const CARD_HEIGHT = 140;
 
 interface Message {
@@ -683,10 +683,9 @@ export default function DashboardScreen() {
                     showsHorizontalScrollIndicator={false}
                     snapToInterval={CARD_WIDTH + CARD_SPACING}
                     decelerationRate="fast"
-                    snapToAlignment="start"
+                    snapToAlignment="center"
                     contentContainerStyle={{
-                      paddingLeft: SIDE_PADDING,
-                      paddingRight: SIDE_PADDING,
+                      paddingHorizontal: (SCREEN_WIDTH - CARD_WIDTH) / 2,
                     }}
                     onScroll={Animated.event(
                       [{ nativeEvent: { contentOffset: { x: scrollX } } }],

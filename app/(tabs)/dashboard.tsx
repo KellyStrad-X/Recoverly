@@ -162,6 +162,9 @@ export default function DashboardScreen() {
   const handleSend = async () => {
     if (!inputText.trim() || !user) return;
 
+    // Dismiss keyboard first
+    Keyboard.dismiss();
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -342,7 +345,7 @@ export default function DashboardScreen() {
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               style={{ flex: 1 }}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+              keyboardVerticalOffset={0}
             >
               {/* Close Button */}
               <TouchableOpacity
@@ -377,6 +380,7 @@ export default function DashboardScreen() {
                     multiline
                     maxLength={500}
                     keyboardAppearance="dark"
+                    blurOnSubmit={false}
                   />
                   <TouchableOpacity
                     style={[

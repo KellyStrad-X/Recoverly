@@ -24,7 +24,7 @@ All code changes have been implemented and are ready to test on your host machin
 2. **Proper GIF Fetching** (using /image endpoint)
    - Fetches from: `https://exercisedb.p.rapidapi.com/image?exerciseId={id}&resolution=1080`
    - Includes RapidAPI auth headers
-   - Converts blob to base64 data URI for React Native compatibility
+   - Uses FileReader API to convert blob to base64 (React Native compatible)
    - Format: `data:image/gif;base64,{base64_data}`
 
 3. **Code Cleanup**
@@ -95,7 +95,7 @@ const gif = await fetchExerciseGif("1409")
    ```bash
    cd recoverly-app
    npm install
-   # Should install: fuse.js, buffer
+   # Should install: fuse.js (only new dependency)
    ```
 
 4. **Run Test Script** (Optional - validates implementation)
@@ -193,8 +193,8 @@ const gif = await fetchExerciseGif("1409")
 
 5. **Image shows but is blank/broken**
    - Base64 conversion issue
-   - Check if `buffer` package installed correctly
-   - Try reinstalling: `npm install buffer --legacy-peer-deps`
+   - Check console for FileReader errors
+   - Verify the blob is valid (check response Content-Type header)
 
 ### Performance Issues
 
@@ -275,17 +275,18 @@ If issues occur:
 
 ```json
 {
-  "fuse.js": "^7.0.0",    // Fuzzy search
-  "buffer": "^6.0.3"       // Base64 encoding for React Native
+  "fuse.js": "^7.0.0"    // Fuzzy search (only new dependency needed!)
 }
 ```
+
+No additional dependencies needed for base64 conversion - uses built-in FileReader API.
 
 ### Key Functions
 
 - `findExerciseByName(name)` - Fuzzy match in database
 - `fetchExerciseGif(exerciseId)` - Fetch and convert GIF to base64
 - `searchExerciseDBByName(name)` - Combined search + fetch
-- `arrayBufferToBase64(buffer)` - Convert blob to base64 string
+- `blobToBase64(blob)` - Convert blob to base64 using FileReader (React Native compatible)
 
 ### Data Flow
 

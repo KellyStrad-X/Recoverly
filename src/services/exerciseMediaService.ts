@@ -2,7 +2,6 @@ import Constants from 'expo-constants';
 import { db } from '@/config/firebase';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import Fuse from 'fuse.js';
-import { Buffer } from 'buffer';
 import exerciseDatabase from '../../scripts/exercisedb-complete-index.json';
 
 /**
@@ -87,11 +86,23 @@ const findExerciseByName = (exerciseName: string): { id: string; name: string } 
 };
 
 /**
- * Convert ArrayBuffer to base64 string using Buffer
+ * Convert Blob to base64 string using FileReader (React Native compatible)
  */
-const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-  const bytes = new Uint8Array(buffer);
-  return Buffer.from(bytes).toString('base64');
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        // Remove the data URI prefix to get just the base64 string
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      } else {
+        reject(new Error('FileReader result is not a string'));
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 };
 
 /**
@@ -121,10 +132,9 @@ export const fetchExerciseGif = async (exerciseId: string): Promise<string | nul
       return null;
     }
 
-    // Fetch as blob, then convert to base64
+    // Fetch as blob, then convert to base64 using FileReader
     const blob = await response.blob();
-    const arrayBuffer = await blob.arrayBuffer();
-    const base64 = arrayBufferToBase64(arrayBuffer);
+    const base64 = await blobToBase64(blob);
 
     // Return as data URI
     const dataUri = `data:image/gif;base64,${base64}`;

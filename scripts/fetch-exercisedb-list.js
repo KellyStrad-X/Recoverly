@@ -26,10 +26,11 @@ async function fetchAllExercises() {
 
   try {
     // ExerciseDB endpoint to get all exercises
-    const url = 'https://exercisedb.p.rapidapi.com/exercises?limit=1500';
+    // Note: limit parameter doesn't work - API returns all ~1300 exercises
+    const url = 'https://exercisedb.p.rapidapi.com/exercises';
 
     console.log('📡 Fetching from:', url);
-    console.log('⏳ This may take a moment...\n');
+    console.log('⏳ This may take a moment (~1300 exercises)...\n');
 
     const response = await fetch(url, {
       method: 'GET',

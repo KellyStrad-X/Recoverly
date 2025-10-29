@@ -642,8 +642,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   exerciseItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
     padding: 16,

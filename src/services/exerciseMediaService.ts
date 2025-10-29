@@ -1,18 +1,20 @@
 import Constants from 'expo-constants';
+import { db } from '@/config/firebase';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 
 /**
- * ExerciseDB & YouTube Exercise Media Service
+ * Exercise Media Service - YouTube Integration with Caching
  *
- * IMPORTANT: ExerciseDB ToS Compliance
- * - Caching is STRICTLY PROHIBITED per ExerciseDB Terms of Service
- * - All data must be fetched fresh from the API for each use
- * - Do NOT store, archive, or retain exercise data for future use
- * - Each exercise expansion triggers a fresh API call
+ * CACHING POLICY:
+ * - YouTube Data API: Caching ALLOWED for up to 24 hours (per ToS Section III.E.4)
+ * - We cache video IDs and metadata in Firestore for consistent user experience
+ * - Users see the same video on repeat visits
+ * - ExerciseDB: Caching PROHIBITED (deprecated - not using anymore)
  *
  * Implementation:
- * - Fetch on-demand when user expands an exercise
- * - No pre-loading, no batch fetching, no persistent caching
- * - Component-level state is temporary and session-only
+ * - Check Firestore cache first (with 24hr TTL)
+ * - If cache miss or expired, fetch from YouTube API
+ * - Store result in Firestore for future use
  */
 
 const RAPIDAPI_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_RAPIDAPI_KEY || process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
@@ -29,6 +31,17 @@ export interface ExerciseMedia {
   youtubeVideoTitle?: string;
   lastFetched: Date;
 }
+
+interface CachedYouTubeVideo {
+  exerciseId: string;
+  exerciseName: string;
+  videoId: string;
+  videoTitle: string;
+  cachedAt: Timestamp;
+  expiresAt: Timestamp;
+}
+
+const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours per YouTube ToS
 
 /**
  * Search ExerciseDB for a matching exercise by name
@@ -69,6 +82,74 @@ export const searchExerciseDBByName = async (exerciseName: string): Promise<stri
   } catch (error) {
     console.error('Error searching ExerciseDB:', error);
     return null;
+  }
+};
+
+/**
+ * Get cached YouTube video from Firestore
+ */
+const getCachedYouTubeVideo = async (
+  exerciseId: string
+): Promise<{ videoId: string; title: string } | null> => {
+  try {
+    const cacheRef = doc(db, 'exerciseVideoCache', exerciseId);
+    const cacheDoc = await getDoc(cacheRef);
+
+    if (!cacheDoc.exists()) {
+      console.log(`No cached video for exercise: ${exerciseId}`);
+      return null;
+    }
+
+    const cached = cacheDoc.data() as CachedYouTubeVideo;
+    const now = new Date();
+    const expiresAt = cached.expiresAt.toDate();
+
+    // Check if cache is expired
+    if (now > expiresAt) {
+      console.log(`Cached video expired for exercise: ${exerciseId}`);
+      return null;
+    }
+
+    console.log(`✅ Using cached video for: ${cached.exerciseName}`);
+    return {
+      videoId: cached.videoId,
+      title: cached.videoTitle,
+    };
+  } catch (error) {
+    console.error('Error reading video cache:', error);
+    return null;
+  }
+};
+
+/**
+ * Cache YouTube video in Firestore (24 hour TTL per YouTube ToS)
+ */
+const cacheYouTubeVideo = async (
+  exerciseId: string,
+  exerciseName: string,
+  videoId: string,
+  videoTitle: string
+): Promise<void> => {
+  try {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + CACHE_DURATION_MS);
+
+    const cacheData: CachedYouTubeVideo = {
+      exerciseId,
+      exerciseName,
+      videoId,
+      videoTitle,
+      cachedAt: Timestamp.fromDate(now),
+      expiresAt: Timestamp.fromDate(expiresAt),
+    };
+
+    const cacheRef = doc(db, 'exerciseVideoCache', exerciseId);
+    await setDoc(cacheRef, cacheData);
+
+    console.log(`💾 Cached video for: ${exerciseName} (expires in 24h)`);
+  } catch (error) {
+    console.error('Error caching video:', error);
+    // Don't throw - caching failure shouldn't block the user
   }
 };
 
@@ -162,14 +243,16 @@ export const searchYouTubeVideo = async (
 };
 
 /**
- * Fetch media for a single exercise (GIF + YouTube)
- * This is the main function to call - fetches fresh every time per ExerciseDB ToS
+ * Fetch media for a single exercise - prioritizes cached YouTube videos
+ * CACHING STRATEGY:
+ * - YouTube: Check cache first (24hr TTL), fetch & cache if miss
+ * - ExerciseDB: Deprecated (not using GIFs anymore)
  */
 export const fetchExerciseMedia = async (
   exerciseId: string,
   exerciseName: string
 ): Promise<ExerciseMedia> => {
-  console.log(`Fetching fresh media for: ${exerciseName}`);
+  console.log(`Fetching media for: ${exerciseName}`);
 
   const media: ExerciseMedia = {
     exerciseId,
@@ -177,24 +260,29 @@ export const fetchExerciseMedia = async (
     lastFetched: new Date(),
   };
 
-  // Try ExerciseDB first (fast, auto-playing GIFs)
+  // Check YouTube cache first
   try {
-    const gifUrl = await searchExerciseDBByName(exerciseName);
-    if (gifUrl) {
-      media.gifUrl = gifUrl;
-      console.log(`Found GIF for ${exerciseName}`);
-    }
-  } catch (error) {
-    console.error('Error fetching ExerciseDB GIF:', error);
-  }
+    const cachedVideo = await getCachedYouTubeVideo(exerciseId);
 
-  // Try YouTube (tutorial videos)
-  try {
-    const youtubeResult = await searchYouTubeVideo(exerciseName);
-    if (youtubeResult) {
-      media.youtubeVideoId = youtubeResult.videoId;
-      media.youtubeVideoTitle = youtubeResult.title;
-      console.log(`Found YouTube video for ${exerciseName}`);
+    if (cachedVideo) {
+      // Use cached video
+      media.youtubeVideoId = cachedVideo.videoId;
+      media.youtubeVideoTitle = cachedVideo.title;
+    } else {
+      // Cache miss - fetch from API and cache the result
+      const youtubeResult = await searchYouTubeVideo(exerciseName);
+      if (youtubeResult) {
+        media.youtubeVideoId = youtubeResult.videoId;
+        media.youtubeVideoTitle = youtubeResult.title;
+
+        // Cache for future use
+        await cacheYouTubeVideo(
+          exerciseId,
+          exerciseName,
+          youtubeResult.videoId,
+          youtubeResult.title
+        );
+      }
     }
   } catch (error) {
     console.error('Error fetching YouTube video:', error);

@@ -12,10 +12,10 @@ import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview';
 import { getPlanById } from '@/services/planService';
 import type { RehabPlan } from '@/types/plan';
 import SessionFlowModal from '@/components/SessionFlowModal';
-import YouTubeModal from '@/components/YouTubeModal';
 import { fetchExerciseMedia, type ExerciseMedia } from '@/services/exerciseMediaService';
 
 export default function PlanDetailScreen() {
@@ -27,8 +27,6 @@ export default function PlanDetailScreen() {
   const [sessionModalVisible, setSessionModalVisible] = useState(false);
   const [exerciseMedia, setExerciseMedia] = useState<Map<string, ExerciseMedia>>(new Map());
   const [loadingMediaIds, setLoadingMediaIds] = useState<Set<string>>(new Set());
-  const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string } | null>(null);
 
   useEffect(() => {
     loadPlan();
@@ -95,11 +93,6 @@ export default function PlanDetailScreen() {
   const handleSessionComplete = () => {
     setSessionModalVisible(false);
     loadPlan(); // Refresh plan data
-  };
-
-  const handleWatchVideo = (videoId: string, title: string) => {
-    setSelectedVideo({ videoId, title });
-    setYoutubeModalVisible(true);
   };
 
   if (loading) {
@@ -220,31 +213,56 @@ export default function PlanDetailScreen() {
                       </View>
                     )}
 
-                    {/* Exercise GIF */}
-                    {exerciseMedia.get(exercise.id)?.gifUrl && (
-                      <View style={styles.gifContainer}>
-                        <Image
-                          source={{ uri: exerciseMedia.get(exercise.id)?.gifUrl }}
-                          style={styles.exerciseGif}
-                          resizeMode="contain"
+                    {/* YouTube Video Embed */}
+                    {exerciseMedia.get(exercise.id)?.youtubeVideoId && (
+                      <View style={styles.videoContainer}>
+                        <WebView
+                          source={{
+                            html: `
+                              <!DOCTYPE html>
+                              <html>
+                                <head>
+                                  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+                                  <style>
+                                    * { margin: 0; padding: 0; }
+                                    html, body { width: 100%; height: 100%; background: #000; }
+                                    .video-container {
+                                      position: relative;
+                                      width: 100%;
+                                      padding-bottom: 56.25%;
+                                      height: 0;
+                                      overflow: hidden;
+                                    }
+                                    .video-container iframe {
+                                      position: absolute;
+                                      top: 0;
+                                      left: 0;
+                                      width: 100%;
+                                      height: 100%;
+                                      border: 0;
+                                    }
+                                  </style>
+                                </head>
+                                <body>
+                                  <div class="video-container">
+                                    <iframe
+                                      src="https://www.youtube.com/embed/${exerciseMedia.get(exercise.id)?.youtubeVideoId}?playsinline=1&modestbranding=1&rel=0&showinfo=0"
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                      allowfullscreen
+                                    ></iframe>
+                                  </div>
+                                </body>
+                              </html>
+                            `,
+                          }}
+                          style={styles.videoWebView}
+                          javaScriptEnabled={true}
+                          domStorageEnabled={true}
+                          allowsFullscreenVideo={true}
+                          mediaPlaybackRequiresUserAction={false}
+                          scrollEnabled={false}
                         />
                       </View>
-                    )}
-
-                    {/* Watch Full Tutorial Button */}
-                    {exerciseMedia.get(exercise.id)?.youtubeVideoId && (
-                      <TouchableOpacity
-                        style={styles.watchVideoButton}
-                        onPress={() => {
-                          const media = exerciseMedia.get(exercise.id);
-                          if (media?.youtubeVideoId && media?.youtubeVideoTitle) {
-                            handleWatchVideo(media.youtubeVideoId, media.youtubeVideoTitle);
-                          }
-                        }}
-                      >
-                        <MaterialCommunityIcons name="play-circle" size={20} color="#FFFFFF" />
-                        <Text style={styles.watchVideoText}>Watch Full Tutorial</Text>
-                      </TouchableOpacity>
                     )}
 
                     {/* Loading media indicator */}
@@ -294,16 +312,6 @@ export default function PlanDetailScreen() {
           plan={plan}
           onClose={() => setSessionModalVisible(false)}
           onComplete={handleSessionComplete}
-        />
-      )}
-
-      {/* YouTube Video Modal */}
-      {youtubeModalVisible && selectedVideo && (
-        <YouTubeModal
-          visible={youtubeModalVisible}
-          videoId={selectedVideo.videoId}
-          videoTitle={selectedVideo.title}
-          onClose={() => setYoutubeModalVisible(false)}
         />
       )}
     </SafeAreaView>
@@ -578,34 +586,16 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontStyle: 'italic',
   },
-  gifContainer: {
+  videoContainer: {
     marginTop: 16,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: '#000000',
     borderRadius: 12,
     overflow: 'hidden',
-    alignItems: 'center',
+    height: 220,
   },
-  exerciseGif: {
-    width: '100%',
-    height: 200,
-  },
-  watchVideoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#2C2C2E',
-    borderWidth: 1,
-    borderColor: '#66BB6A',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    marginTop: 16,
-  },
-  watchVideoText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
+  videoWebView: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   loadingMediaContainer: {
     flexDirection: 'row',

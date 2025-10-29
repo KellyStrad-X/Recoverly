@@ -129,7 +129,6 @@ export default function DashboardScreen() {
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
       () => {
         if (!isChatExpanded) {
-          setIsKeyboardVisible(false);
           // Stop pulse animation
           pulseAnim.stopAnimation();
           pulseAnim.setValue(1);
@@ -156,7 +155,10 @@ export default function DashboardScreen() {
               duration: 200,
               useNativeDriver: true,
             }),
-          ]).start();
+          ]).start(() => {
+            // Set keyboard invisible after animations complete
+            setIsKeyboardVisible(false);
+          });
         }
       }
     );
@@ -734,11 +736,9 @@ export default function DashboardScreen() {
       {/* Pulsing Logo - Shows when keyboard is visible but chat not expanded */}
       {isKeyboardVisible && !isChatExpanded && (
         <>
-          {/* Agent Is Waiting Placard - Top Header */}
-          <Animated.View style={[styles.waitingPlacardContainer, { opacity: centerLogoOpacity }]}>
-            <View style={styles.waitingPlacard}>
-              <Text style={styles.waitingText}>{typewriterText}</Text>
-            </View>
+          {/* Agent Is Waiting Text - Top Header */}
+          <Animated.View style={[styles.waitingTextContainer, { opacity: centerLogoOpacity }]}>
+            <Text style={styles.waitingText}>{typewriterText}</Text>
           </Animated.View>
 
           {/* Close Button - Top Right - Fixed visibility */}
@@ -1297,21 +1297,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 1001,
   },
-  waitingPlacardContainer: {
+  waitingTextContainer: {
     position: 'absolute',
-    top: 50,
+    top: 80,
     left: 0,
     right: 0,
     alignItems: 'center',
     zIndex: 1000,
-  },
-  waitingPlacard: {
-    backgroundColor: '#2C2C2E',
-    borderWidth: 1,
-    borderColor: 'rgba(102, 187, 106, 0.6)',
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
   },
   waitingText: {
     color: '#66BB6A',

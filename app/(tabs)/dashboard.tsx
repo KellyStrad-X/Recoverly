@@ -24,10 +24,11 @@ import { getUserActivePlans } from '@/services/planService';
 import type { RehabPlan } from '@/types/plan';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Carousel constants
-const CARD_HEIGHT = 70;
+const CARD_WIDTH = SCREEN_WIDTH - 32; // Leave 16px padding on each side
+const CARD_HEIGHT = 140;
 const CARD_SPACING = 16;
 
 interface Message {
@@ -63,7 +64,7 @@ export default function DashboardScreen() {
   const [loadingPlans, setLoadingPlans] = useState(true);
   const flatListRef = useRef<FlatList>(null);
   const carouselRef = useRef<FlatList>(null);
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   // Animation values
   const chatOpacity = useRef(new Animated.Value(0)).current;
@@ -349,22 +350,22 @@ export default function DashboardScreen() {
   };
 
   const renderPlanCard = ({ item, index }: { item: RehabPlan; index: number }) => {
-    // Calculate opacity based on scroll position for fade effect
+    // Calculate opacity based on scroll position for fade effect (horizontal)
     const inputRange = [
-      (index - 1) * (CARD_HEIGHT + CARD_SPACING),
-      index * (CARD_HEIGHT + CARD_SPACING),
-      (index + 1) * (CARD_HEIGHT + CARD_SPACING),
+      (index - 1) * (CARD_WIDTH + CARD_SPACING),
+      index * (CARD_WIDTH + CARD_SPACING),
+      (index + 1) * (CARD_WIDTH + CARD_SPACING),
     ];
 
-    const opacity = scrollY.interpolate({
+    const opacity = scrollX.interpolate({
       inputRange,
-      outputRange: [0.3, 1, 0.3],
+      outputRange: [0.5, 1, 0.5],
       extrapolate: 'clamp',
     });
 
-    const scale = scrollY.interpolate({
+    const scale = scrollX.interpolate({
       inputRange,
-      outputRange: [0.95, 1, 0.95],
+      outputRange: [0.92, 1, 0.92],
       extrapolate: 'clamp',
     });
 
@@ -393,9 +394,18 @@ export default function DashboardScreen() {
               <Text style={styles.carouselCardTitle}>
                 {item.aiGeneratedLabel || item.protocolName}
               </Text>
+              <Text style={styles.carouselCardSubtitle}>
+                Day {item.currentDay + 1} of {item.duration}
+              </Text>
+              <View style={styles.carouselCardStats}>
+                <MaterialCommunityIcons name="check-circle" size={16} color="#66BB6A" />
+                <Text style={styles.carouselCardStatText}>
+                  {item.sessionsCompleted} sessions completed
+                </Text>
+              </View>
             </View>
 
-            {/* Placeholder circular progress */}
+            {/* Circular progress - positioned top right */}
             <View style={styles.circularProgress}>
               <Text style={styles.circularProgressText}>{progressPercentage}%</Text>
             </View>
@@ -570,7 +580,7 @@ export default function DashboardScreen() {
               </View>
             )}
 
-            {/* Vertical Carousel - Active Plans */}
+            {/* Horizontal Carousel - Active Plans */}
             {!loadingPlans && activePlans.length > 0 && (
               <Animated.View style={{ opacity: dashboardContentOpacity }}>
                 <View style={styles.carouselContainer}>
@@ -579,15 +589,16 @@ export default function DashboardScreen() {
                     data={activePlans}
                     renderItem={renderPlanCard}
                     keyExtractor={(item) => item.id}
-                    showsVerticalScrollIndicator={false}
-                    snapToInterval={CARD_HEIGHT + CARD_SPACING}
-                    decelerationRate="normal"
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                    snapToInterval={CARD_WIDTH + CARD_SPACING}
+                    decelerationRate="fast"
                     snapToAlignment="center"
                     contentContainerStyle={{
-                      paddingVertical: SCREEN_HEIGHT / 8,
+                      paddingHorizontal: 16,
                     }}
                     onScroll={Animated.event(
-                      [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                      [{ nativeEvent: { contentOffset: { x: scrollX } } }],
                       { useNativeDriver: true }
                     )}
                     scrollEventThrottle={16}
@@ -1062,19 +1073,19 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   smallLogo: {
-    width: 56,
-    height: 56,
+    width: 68,
+    height: 68,
   },
-  // Vertical Carousel Styles
+  // Horizontal Carousel Styles
   carouselContainer: {
-    height: SCREEN_HEIGHT / 4,
+    height: CARD_HEIGHT + 40,
     marginBottom: 20,
   },
   carouselCardWrapper: {
-    paddingHorizontal: 12,
-    marginBottom: CARD_SPACING,
+    marginRight: CARD_SPACING,
   },
   carouselCard: {
+    width: CARD_WIDTH,
     height: CARD_HEIGHT,
     backgroundColor: '#1C1C1E',
     borderRadius: 16,
@@ -1090,40 +1101,49 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
   carouselCardLeft: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   carouselCardTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 8,
     letterSpacing: -0.3,
   },
   carouselCardSubtitle: {
+    color: '#66BB6A',
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  carouselCardStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  carouselCardStatText: {
     color: '#8E8E93',
     fontSize: 14,
-    fontWeight: '500',
+    marginLeft: 6,
   },
   circularProgress: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 3,
     borderColor: 'rgba(102, 187, 106, 0.6)',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#0A0A0A',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
   },
   circularProgressText: {
     color: '#66BB6A',
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
   },
   // Placeholder Section

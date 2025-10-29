@@ -387,12 +387,11 @@ export default function DashboardScreen() {
 
       {/* Chat Overlay - OUTSIDE KeyboardAvoidingView */}
       {isChatExpanded && (
-          <Animated.View
+          <View
             style={[
               styles.chatOverlay,
               {
-                transform: [{ translateY: chatTranslateY }],
-                opacity: chatOpacity,
+                // NO ANIMATION - just show it
               },
             ]}
           >
@@ -449,7 +448,7 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </Animated.View>
+          </View>
         )}
     </SafeAreaView>
   );

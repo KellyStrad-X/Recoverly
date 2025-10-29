@@ -316,17 +316,18 @@ export default function ChatScreen() {
 
         {/* Messages */}
         <View style={styles.messagesContainer}>
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messagesList}
-          showsVerticalScrollIndicator={false}
-          ListFooterComponent={renderTypingIndicator}
-        />
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.messagesList}
+            showsVerticalScrollIndicator={false}
+            ListFooterComponent={renderTypingIndicator}
+          />
+        </View>
 
-        {/* Input Bar */}
+        {/* Input Bar - OUTSIDE of messagesContainer */}
         <View style={styles.inputContainer}>
           <Text style={{color: 'red', fontSize: 20}}>TEST TEXT BEFORE</Text>
           <View style={styles.inputWrapper}>
@@ -388,7 +389,6 @@ export default function ChatScreen() {
               />
             </TouchableOpacity>
           </View>
-        </View>
         </View>
       </SafeAreaView>
     </KeyboardAvoidingView>

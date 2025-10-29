@@ -29,6 +29,19 @@ interface Message {
   content: string;
   timestamp: Date;
   quickReplies?: string[];
+  protocol?: {
+    description: string;
+    exercises: Array<{
+      name: string;
+      sets: number;
+      reps: string;
+      instructions: string;
+      safetyNotes: string;
+    }>;
+    duration: string;
+    frequency: string;
+    disclaimer: string;
+  };
 }
 
 export default function DashboardScreen() {
@@ -162,12 +175,15 @@ export default function DashboardScreen() {
       }
 
       if (response.requiresPaywall && response.protocol) {
-        router.push({
-          pathname: '/(intake)/paywall',
-          params: {
-            preview: JSON.stringify(response.protocol),
-          },
-        });
+        // Add protocol as a special message instead of navigating immediately
+        const protocolMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: "I've created a personalized recovery plan for you!",
+          timestamp: new Date(),
+          protocol: response.protocol,
+        };
+        setMessages((prev) => [...prev, protocolMessage]);
         return;
       }
 
@@ -254,6 +270,26 @@ export default function DashboardScreen() {
     sendMessageToAI(reply);
   };
 
+  const handleSeeFullPlan = (protocol: Message['protocol']) => {
+    if (!user || !protocol) return;
+
+    // Check subscription status
+    const isPaidUser = user.subscriptionStatus === 'active';
+
+    if (isPaidUser) {
+      // Navigate to plan detail screen (stub for now)
+      router.push('/plan/new');
+    } else {
+      // Navigate to paywall with protocol preview
+      router.push({
+        pathname: '/(intake)/paywall',
+        params: {
+          preview: JSON.stringify(protocol),
+        },
+      });
+    }
+  };
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isUser = item.role === 'user';
     const isLastMessage = messages[messages.length - 1].id === item.id;
@@ -301,6 +337,59 @@ export default function DashboardScreen() {
                 <Text style={styles.quickReplyText}>{reply}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+        )}
+
+        {/* Protocol Preview */}
+        {!isUser && item.protocol && (
+          <View style={styles.protocolPreviewContainer}>
+            <View style={styles.protocolPreviewCard}>
+              <Text style={styles.protocolPreviewTitle}>Your Recovery Plan</Text>
+
+              <View style={styles.protocolStat}>
+                <MaterialCommunityIcons name="dumbbell" size={16} color="#66BB6A" />
+                <Text style={styles.protocolStatText}>
+                  {item.protocol.exercises.length} exercises
+                </Text>
+              </View>
+
+              <View style={styles.protocolStat}>
+                <MaterialCommunityIcons name="calendar-clock" size={16} color="#66BB6A" />
+                <Text style={styles.protocolStatText}>
+                  {item.protocol.duration} • {item.protocol.frequency}
+                </Text>
+              </View>
+
+              <View style={styles.protocolStat}>
+                <MaterialCommunityIcons name="target" size={16} color="#66BB6A" />
+                <Text style={styles.protocolStatText}>
+                  {item.protocol.description}
+                </Text>
+              </View>
+
+              {/* Show first 2 exercises as teaser */}
+              <View style={styles.protocolExerciseTeaser}>
+                <Text style={styles.protocolExerciseTeaserTitle}>Includes:</Text>
+                {item.protocol.exercises.slice(0, 2).map((exercise, index) => (
+                  <Text key={index} style={styles.protocolExerciseTeaserItem}>
+                    • {exercise.name}
+                  </Text>
+                ))}
+                {item.protocol.exercises.length > 2 && (
+                  <Text style={styles.protocolExerciseTeaserMore}>
+                    + {item.protocol.exercises.length - 2} more exercises
+                  </Text>
+                )}
+              </View>
+
+              <TouchableOpacity
+                style={styles.seeFullPlanButton}
+                onPress={() => handleSeeFullPlan(item.protocol)}
+              >
+                <Text style={styles.seeFullPlanButtonText}>See Full Plan</Text>
+                <MaterialCommunityIcons name="arrow-right" size={20} color="#000000" />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </View>
@@ -716,5 +805,77 @@ const styles = StyleSheet.create({
     color: '#66BB6A',
     fontSize: 15,
     fontWeight: '600',
+  },
+  protocolPreviewContainer: {
+    paddingLeft: 48,
+    paddingRight: 16,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  protocolPreviewCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#66BB6A',
+    padding: 16,
+  },
+  protocolPreviewTitle: {
+    color: '#66BB6A',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  protocolStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  protocolStatText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginLeft: 8,
+    flex: 1,
+  },
+  protocolExerciseTeaser: {
+    marginTop: 12,
+    marginBottom: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#2C2C2E',
+  },
+  protocolExerciseTeaserTitle: {
+    color: '#8E8E93',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  protocolExerciseTeaserItem: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  protocolExerciseTeaserMore: {
+    color: '#66BB6A',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  seeFullPlanButton: {
+    backgroundColor: '#66BB6A',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  seeFullPlanButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '700',
+    marginRight: 8,
   },
 });

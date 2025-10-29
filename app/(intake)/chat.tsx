@@ -328,7 +328,10 @@ export default function ChatScreen() {
 
         {/* Input Bar */}
         <View style={styles.inputContainer}>
+          <Text style={{color: 'red', fontSize: 20}}>TEST TEXT BEFORE</Text>
           <View style={styles.inputWrapper}>
+            <Text style={{color: 'yellow', fontSize: 16, position: 'absolute', top: -20, left: 0, zIndex: 999}}>ABOVE</Text>
+            <Text style={{color: 'cyan', fontSize: 16, marginRight: 8}}>LEFT</Text>
             {/* TextInput with padding for mic button */}
             <TextInput
               style={[styles.input, {paddingLeft: 44}]}  // Add padding for mic button space
@@ -340,6 +343,7 @@ export default function ChatScreen() {
               maxLength={500}
               editable={!isRecording}
             />
+            <Text style={{color: 'magenta', fontSize: 16, marginLeft: 8}}>RIGHT</Text>
 
             {/* Mic button with absolute positioning */}
             <TouchableOpacity
@@ -510,6 +514,8 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     position: 'relative',  // Important for absolute positioning of children
+    flexDirection: 'row',  // Add this back for the text elements
+    alignItems: 'center',  // Center items vertically
     backgroundColor: '#1C1C1E',
     borderRadius: 24,
     paddingHorizontal: 12,

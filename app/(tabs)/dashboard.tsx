@@ -16,10 +16,13 @@ import {
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
 import { generateRecoveryProtocol, type Message as AIMessage } from '@/services/aiService';
+import { getUserActivePlans } from '@/services/planService';
+import type { RehabPlan } from '@/types/plan';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -52,6 +55,8 @@ export default function DashboardScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [activePlans, setActivePlans] = useState<RehabPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
   const flatListRef = useRef<FlatList>(null);
 
   // Animation values
@@ -119,6 +124,41 @@ export default function DashboardScreen() {
       }, 100);
     }
   }, [messages, isChatExpanded]);
+
+  // Fetch active plans on mount and when returning from paywall
+  useEffect(() => {
+    const fetchPlans = async () => {
+      if (!user) {
+        setActivePlans([]);
+        setLoadingPlans(false);
+        return;
+      }
+
+      try {
+        setLoadingPlans(true);
+        const plans = await getUserActivePlans(user.uid);
+        setActivePlans(plans);
+      } catch (error) {
+        console.error('Error fetching plans:', error);
+        Alert.alert('Error', 'Failed to load recovery plans');
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
+
+    fetchPlans();
+  }, [user]);
+
+  // Refresh plans when screen comes into focus (e.g., after paywall)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user && !isChatExpanded) {
+        getUserActivePlans(user.uid)
+          .then(setActivePlans)
+          .catch((error) => console.error('Error refreshing plans:', error));
+      }
+    }, [user, isChatExpanded])
+  );
 
   const expandToChat = () => {
     setIsChatExpanded(true);
@@ -439,24 +479,88 @@ export default function DashboardScreen() {
               </Text>
             </Animated.View>
 
-            <Animated.View
-              style={[
-                styles.emptyState,
-                { transform: [{ translateY: logoTranslateY }] }
-              ]}
-            >
-              <Image
-                source={require('../../misc/RecoverlyLogoHD.png')}
-                style={styles.logoImage}
-                resizeMode="contain"
-              />
-              <Text variant="titleLarge" style={styles.emptyTitle}>
-                No Active Protocols
-              </Text>
-              <Text variant="bodyMedium" style={styles.emptyDescription}>
-                Describe your pain or movement issue to get started with a personalized recovery plan.
-              </Text>
-            </Animated.View>
+            {/* Loading State */}
+            {loadingPlans && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#66BB6A" />
+                <Text style={styles.loadingText}>Loading your protocols...</Text>
+              </View>
+            )}
+
+            {/* Active Plans - Glass Cards with Roll Deck */}
+            {!loadingPlans && activePlans.length > 0 && (
+              <View style={styles.plansContainer}>
+                {activePlans.slice(0, 3).map((plan, index) => (
+                  <TouchableOpacity
+                    key={plan.id}
+                    activeOpacity={0.9}
+                    onPress={() => router.push(`/plan/${plan.id}`)}
+                    style={[
+                      styles.planCardWrapper,
+                      index > 0 && {
+                        position: 'absolute',
+                        top: index * -8,
+                        left: 0,
+                        right: 0,
+                        zIndex: activePlans.length - index,
+                        transform: [{ scale: 1 - index * 0.04 }],
+                      },
+                    ]}
+                  >
+                    <LinearGradient
+                      colors={[
+                        `rgba(102, 187, 106, ${0.12 + index * 0.06})`,
+                        `rgba(102, 187, 106, ${0.08 + index * 0.08})`,
+                      ]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 0, y: 1 }}
+                      style={styles.planCardGradient}
+                    >
+                      <View style={styles.planCardContent}>
+                        <Text style={styles.planCardTitle}>{plan.protocolName}</Text>
+                        <Text style={styles.planCardLabel}>
+                          Day {plan.currentDay + 1} of {plan.duration}
+                        </Text>
+                        <View style={styles.planCardStats}>
+                          <View style={styles.planCardStat}>
+                            <MaterialCommunityIcons
+                              name="star"
+                              size={16}
+                              color="#66BB6A"
+                            />
+                            <Text style={styles.planCardStatText}>
+                              {plan.sessionsCompleted} sessions
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Empty State - No Plans */}
+            {!loadingPlans && activePlans.length === 0 && (
+              <Animated.View
+                style={[
+                  styles.emptyState,
+                  { transform: [{ translateY: logoTranslateY }] }
+                ]}
+              >
+                <Image
+                  source={require('../../misc/RecoverlyLogoHD.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+                <Text variant="titleLarge" style={styles.emptyTitle}>
+                  No Active Protocols
+                </Text>
+                <Text variant="bodyMedium" style={styles.emptyDescription}>
+                  Describe your pain or movement issue to get started with a personalized recovery plan.
+                </Text>
+              </Animated.View>
+            )}
           </ScrollView>
 
           {/* Inline Chat Input - Positioned at bottom */}
@@ -878,5 +982,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     marginRight: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    color: '#8E8E93',
+    fontSize: 15,
+    marginTop: 16,
+  },
+  plansContainer: {
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    position: 'relative',
+    minHeight: 200,
+  },
+  planCardWrapper: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  planCardGradient: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(102, 187, 106, 0.3)',
+    overflow: 'hidden',
+    shadowColor: '#66BB6A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  planCardContent: {
+    padding: 20,
+  },
+  planCardTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 6,
+    letterSpacing: -0.3,
+  },
+  planCardLabel: {
+    color: '#66BB6A',
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 14,
+  },
+  planCardStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  planCardStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  planCardStatText: {
+    color: '#C7C7CC',
+    fontSize: 14,
+    marginLeft: 6,
   },
 });

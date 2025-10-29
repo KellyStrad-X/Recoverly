@@ -285,47 +285,45 @@ export default function DashboardScreen() {
             </View>
 
             <View style={styles.emptyState}>
-              <View style={styles.emptyIconContainer}>
-                <Image
-                  source={require('../../misc/RecoverlyLogoHD.png')}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
-              </View>
+              <Image
+                source={require('../../misc/RecoverlyLogoHD.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
               <Text variant="titleLarge" style={styles.emptyTitle}>
                 No Active Protocols
               </Text>
               <Text variant="bodyMedium" style={styles.emptyDescription}>
                 Describe your pain or movement issue to get started with a personalized recovery plan.
               </Text>
+            </View>
 
-              {/* Inline Chat Input */}
-              <View style={styles.chatInputContainer}>
-                <TextInput
-                  style={styles.chatInput}
-                  placeholder="Describe your pain or issue..."
-                  placeholderTextColor="#8E8E93"
-                  value={inputText}
-                  onChangeText={setInputText}
-                  multiline
-                  maxLength={500}
-                  keyboardAppearance="dark"
+            {/* Inline Chat Input - OUTSIDE emptyState for full width */}
+            <View style={styles.chatInputContainer}>
+              <TextInput
+                style={styles.chatInput}
+                placeholder="Describe your pain or issue..."
+                placeholderTextColor="#8E8E93"
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={500}
+                keyboardAppearance="dark"
+              />
+              <TouchableOpacity
+                style={[
+                  styles.chatSendButton,
+                  !inputText.trim() && styles.chatSendButtonDisabled,
+                ]}
+                onPress={handleStartChat}
+                disabled={!inputText.trim()}
+              >
+                <MaterialCommunityIcons
+                  name="send"
+                  size={20}
+                  color={inputText.trim() ? '#000000' : '#8E8E93'}
                 />
-                <TouchableOpacity
-                  style={[
-                    styles.chatSendButton,
-                    !inputText.trim() && styles.chatSendButtonDisabled,
-                  ]}
-                  onPress={handleStartChat}
-                  disabled={!inputText.trim()}
-                >
-                  <MaterialCommunityIcons
-                    name="send"
-                    size={20}
-                    color={inputText.trim() ? '#000000' : '#8E8E93'}
-                  />
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -434,22 +432,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 16,
     marginTop: 60,
   },
-  emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#1C1C1E',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    overflow: 'hidden',
-  },
   logoImage: {
-    width: 70,
-    height: 70,
+    width: 160,
+    height: 160,
+    marginBottom: 32,
   },
   emptyTitle: {
     color: '#FFFFFF',
@@ -471,8 +460,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    width: '95%',
-    alignSelf: 'center',
+    alignSelf: 'stretch',
+    marginHorizontal: 0,
   },
   chatInput: {
     flex: 1,

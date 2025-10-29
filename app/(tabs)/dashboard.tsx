@@ -309,6 +309,8 @@ export default function DashboardScreen() {
     );
   };
 
+  console.log('🔄 Render - isChatExpanded:', isChatExpanded, 'messages:', messages.length);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
@@ -383,7 +385,7 @@ export default function DashboardScreen() {
         )}
 
         {/* Chat Overlay - Morphed from input field */}
-        {isChatExpanded && (
+        {isChatExpanded ? (
           <Animated.View
             style={[
               styles.chatOverlay,
@@ -393,6 +395,9 @@ export default function DashboardScreen() {
               },
             ]}
           >
+            <View style={{ position: 'absolute', top: 200, left: 100, width: 200, height: 100, backgroundColor: 'yellow', zIndex: 9999 }}>
+              <Text style={{ color: 'black', fontSize: 20 }}>OVERLAY IS HERE!</Text>
+            </View>
             {/* Close Button */}
             <TouchableOpacity
               style={styles.closeButton}
@@ -444,6 +449,8 @@ export default function DashboardScreen() {
               </View>
             </View>
           </Animated.View>
+        ) : (
+          <Text style={{ position: 'absolute', top: 200, color: 'white', fontSize: 20 }}>Chat NOT expanded</Text>
         )}
       </KeyboardAvoidingView>
     </SafeAreaView>

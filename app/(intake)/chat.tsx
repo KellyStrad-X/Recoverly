@@ -16,7 +16,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
 import { generateRecoveryProtocol, type Message as AIMessage } from '@/services/aiService';
-import * as Speech from 'expo-speech';
 
 interface Message {
   id: string;

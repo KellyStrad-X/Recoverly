@@ -62,6 +62,7 @@ export default function DashboardScreen() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [activePlans, setActivePlans] = useState<RehabPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const [typewriterText, setTypewriterText] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const carouselRef = useRef<FlatList>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -165,6 +166,28 @@ export default function DashboardScreen() {
       keyboardWillHide.remove();
     };
   }, [isChatExpanded, headerOpacity, logoTranslateY]);
+
+  // Typewriter effect for "Recoverly Agent is Waiting..."
+  useEffect(() => {
+    if (isKeyboardVisible && !isChatExpanded) {
+      const fullText = 'Recoverly Agent is Waiting...';
+      let currentIndex = 0;
+      setTypewriterText('');
+
+      const interval = setInterval(() => {
+        if (currentIndex < fullText.length) {
+          setTypewriterText(fullText.substring(0, currentIndex + 1));
+          currentIndex++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 50); // 50ms per character for quick spelling
+
+      return () => clearInterval(interval);
+    } else {
+      setTypewriterText('');
+    }
+  }, [isKeyboardVisible, isChatExpanded]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -714,23 +737,21 @@ export default function DashboardScreen() {
           {/* Agent Is Waiting Placard - Top Header */}
           <Animated.View style={[styles.waitingPlacardContainer, { opacity: centerLogoOpacity }]}>
             <View style={styles.waitingPlacard}>
-              <Text style={styles.waitingText}>Agent Is Waiting</Text>
+              <Text style={styles.waitingText}>{typewriterText}</Text>
             </View>
           </Animated.View>
 
-          {/* Close Button - Top Right */}
-          <Animated.View style={{ opacity: centerLogoOpacity }} pointerEvents="box-none">
-            <TouchableOpacity
-              style={styles.keyboardCloseButton}
-              onPress={() => {
-                console.log('Close button pressed');
-                Keyboard.dismiss();
-              }}
-              activeOpacity={0.7}
-            >
-              <MaterialCommunityIcons name="close" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          </Animated.View>
+          {/* Close Button - Top Right - Fixed visibility */}
+          <TouchableOpacity
+            style={styles.keyboardCloseButton}
+            onPress={() => {
+              console.log('Close button pressed');
+              Keyboard.dismiss();
+            }}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="close" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
 
           {/* Pulsing Logo */}
           <Animated.View
@@ -1293,9 +1314,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   waitingText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    color: '#66BB6A',
+    fontSize: 12,
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
 });

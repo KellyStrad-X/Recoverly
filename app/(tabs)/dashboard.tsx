@@ -99,8 +99,8 @@ export default function DashboardScreen() {
               useNativeDriver: true,
             }),
             Animated.timing(centerLogoOpacity, {
-              toValue: 1,
-              duration: 300,
+              toValue: 0.75,
+              duration: 600,
               useNativeDriver: true,
             }),
           ]).start();

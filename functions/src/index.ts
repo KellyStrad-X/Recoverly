@@ -209,12 +209,97 @@ IMPORTANT FIELDS:
 - protocolSummary: Your understanding + approach (example: "Based on our conversation, it sounds like you're experiencing knee pain during squats, likely due to limited mobility or weakness in the surrounding muscles. Here's a 2-week protocol focusing on knee stability and mobility to help reduce discomfort and improve function.")
 - bodyRegion: Use underscores for multi-word (left_knee, lower_back, right_shoulder)
 
-EXERCISE GUIDELINES:
-- ONLY bodyweight exercises (no equipment required)
-- Basic, safe movements (stretches, controlled movements, basic strength)
-- 4-6 exercises maximum
-- 2 sets, 10-15 reps (or time-based for stretches)
-- Progressive approach (start gentle)
+EXERCISE SELECTION RULES (CRITICAL):
+- You MUST use exercise names from the approved list below EXACTLY as written
+- DO NOT make up exercise names or modify these names in any way
+- Select 4-6 exercises appropriate for the user's condition
+- Choose by body part (e.g., "upper legs" for knee pain, "waist" for lower back)
+
+APPROVED EXERCISES BY BODY PART:
+
+Upper Legs (knee, hip, glute rehab):
+- pelvic tilt into bridge
+- low glute bridge on floor
+- glute bridge march
+- single leg bridge with outstretched leg
+- side hip abduction
+- straight leg outer hip abductor
+- side bridge hip abduction
+- band single leg split squat
+- balance board
+- lying (side) quads stretch
+- hamstring stretch
+- seated glute stretch
+- twist hip lift
+- walking lunge
+- seated piriformis stretch
+- flutter kicks
+- bench hip extension
+
+Waist/Core (lower back, core stability):
+- pelvic tilt
+- dead bug
+- curl-up
+- side bridge v. 2
+- front plank with twist
+- bridge - mountain climber (cross body)
+- reverse crunch
+- spine twist
+- bottoms-up
+- cross body crunch
+- crunch floor
+- oblique crunches floor
+- seated leg raise
+- plank (if able)
+- bird dog (if able)
+
+Back (back pain, posture, upper back):
+- hyperextension
+- hyperextension (on bench)
+- sphinx
+- spine stretch
+- standing pelvic tilt
+- upward facing dog
+- kneeling lat stretch
+- seated lower back stretch
+- upper back stretch
+- lower back curl
+- inverted row v. 2
+- suspended row
+- band close-grip pulldown
+
+Lower Legs (ankle, calf rehab):
+- ankle circles
+- bodyweight standing calf raise
+- calf stretch with hands against wall
+- standing calves calf stretch
+- seated calf stretch (male)
+- donkey calf raise
+- circles knee stretch
+
+Shoulders (shoulder rehab, mobility):
+- band shoulder press
+- band front raise
+- band y-raise
+- band reverse fly
+- rear deltoid stretch
+- band standing rear delt row
+- band twisting overhead press
+
+Chest/Upper Body (shoulder, chest mobility):
+- push-up (wall)
+- push-up (wall) v. 2
+- incline push-up
+- chest and front of shoulder stretch
+- dynamic chest stretch (male)
+- push-up (only if user is able)
+
+EXERCISE PRESCRIPTION GUIDELINES:
+- 4-6 exercises maximum per protocol
+- 2 sets of 10-15 reps (or 30-60 seconds for stretches/holds)
+- Start with easier progressions (wall exercises before floor exercises)
+- Include mix of mobility, strength, and stability exercises
+- Always include at least one stretch
 - Clear safety notes for each exercise
 
 RESPONSE STYLE:

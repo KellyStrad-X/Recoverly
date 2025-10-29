@@ -1,7 +1,6 @@
 import Constants from 'expo-constants';
 import { db } from '@/config/firebase';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
-import Fuse from 'fuse.js';
 import exerciseDatabase from '../../scripts/exercisedb-complete-index.json';
 
 /**
@@ -27,6 +26,11 @@ import exerciseDatabase from '../../scripts/exercisedb-complete-index.json';
  * - Uses /image endpoint with auth headers
  * - Fetches as blob, converts to base64 for React Native Image component
  * - Format: data:image/gif;base64,{base64_data}
+ *
+ * EXERCISE MATCHING:
+ * - AI provides exact exercise names from curated list
+ * - We do exact name lookup (case-insensitive)
+ * - No fuzzy matching needed - AI is constrained to approved exercises
  */
 
 const RAPIDAPI_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_RAPIDAPI_KEY || process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
@@ -34,13 +38,6 @@ const YOUTUBE_API_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_YOUTUBE_API_KEY
 
 const EXERCISEDB_BASE_URL = 'https://exercisedb.p.rapidapi.com';
 const YOUTUBE_BASE_URL = 'https://www.googleapis.com/youtube/v3';
-
-// Initialize Fuse.js for fuzzy exercise name matching
-const fuse = new Fuse(exerciseDatabase, {
-  keys: ['name'],
-  threshold: 0.4, // 0 = exact match, 1 = match anything
-  includeScore: true,
-});
 
 export interface ExerciseMedia {
   exerciseId: string;
@@ -63,25 +60,30 @@ interface CachedYouTubeVideo {
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours per YouTube ToS
 
 /**
- * Find exercise in database using fuzzy matching
- * Returns exercise object with id, name, bodyPart, target, equipment
+ * Find exercise in database using exact name match
+ * AI now uses exact names from our curated list, so no fuzzy matching needed
+ * Returns exercise object with id and name
  */
 const findExerciseByName = (exerciseName: string): { id: string; name: string } | null => {
-  console.log('🔍 Searching exercise database for:', exerciseName);
+  console.log('🔍 Looking up exercise in database:', exerciseName);
 
-  const results = fuse.search(exerciseName);
+  // Exact match (case-insensitive)
+  const match = exerciseDatabase.find(
+    ex => ex.name.toLowerCase() === exerciseName.toLowerCase()
+  );
 
-  if (results.length === 0) {
-    console.warn('⚠️ No exercises found in database');
+  if (!match) {
+    console.error('❌ Exercise not found in database:', exerciseName);
+    console.error('   This should not happen if AI is using the approved list!');
+    console.error('   AI may have hallucinated an exercise name.');
     return null;
   }
 
-  const bestMatch = results[0];
-  console.log(`✅ Found match: "${bestMatch.item.name}" (ID: ${bestMatch.item.id}, score: ${bestMatch.score?.toFixed(2)})`);
+  console.log(`✅ Found exact match: "${match.name}" (ID: ${match.id})`);
 
   return {
-    id: bestMatch.item.id,
-    name: bestMatch.item.name,
+    id: match.id,
+    name: match.name,
   };
 };
 

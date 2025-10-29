@@ -91,11 +91,11 @@ const gif = await fetchExerciseGif("1409")
    git pull origin p2_imp
    ```
 
-3. **Install New Dependencies**
+3. **No New Dependencies Needed**
    ```bash
    cd recoverly-app
-   npm install
-   # Should install: fuse.js (only new dependency)
+   # No npm install needed - we removed fuse.js dependency
+   # Everything uses built-in APIs now
    ```
 
 4. **Run Test Script** (Optional - validates implementation)
@@ -273,19 +273,15 @@ If issues occur:
 
 ### Dependencies Added
 
-```json
-{
-  "fuse.js": "^7.0.0"    // Fuzzy search (only new dependency needed!)
-}
-```
-
-No additional dependencies needed for base64 conversion - uses built-in FileReader API.
+No external dependencies needed!
+- Uses built-in FileReader API for base64 conversion
+- Exact name matching (no fuzzy search library needed)
 
 ### Key Functions
 
-- `findExerciseByName(name)` - Fuzzy match in database
+- `findExerciseByName(name)` - Exact name match in database (no fuzzy search)
 - `fetchExerciseGif(exerciseId)` - Fetch and convert GIF to base64
-- `searchExerciseDBByName(name)` - Combined search + fetch
+- `searchExerciseDBByName(name)` - Combined lookup + fetch
 - `blobToBase64(blob)` - Convert blob to base64 using FileReader (React Native compatible)
 
 ### Data Flow

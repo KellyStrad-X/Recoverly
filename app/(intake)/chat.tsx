@@ -9,8 +9,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Text,
 } from 'react-native';
-import { Text, IconButton } from 'react-native-paper';
+import { IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -328,22 +329,25 @@ export default function ChatScreen() {
         {/* Input Bar */}
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
-            <View style={{ flex: 1 }}>
-              <TextInput
-                style={styles.input}
-                placeholder="Describe your pain or issue..."
-                placeholderTextColor="#8E8E93"
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                maxLength={500}
-              />
-            </View>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder={isRecording ? "Listening..." : "Describe your pain or issue..."}
+              placeholderTextColor="#8E8E93"
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
+              editable={!isRecording}
+            />
             <TouchableOpacity
-              style={{ width: 36, height: 36, backgroundColor: '#FF0000', borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginRight: 8 }}
+              style={[styles.micButton, isRecording && styles.micButtonRecording]}
               onPress={handleMicPress}
             >
-              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>MIC</Text>
+              <MaterialCommunityIcons
+                name={isRecording ? "microphone" : "microphone-outline"}
+                size={20}
+                color={isRecording ? '#FFFFFF' : '#8E8E93'}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -351,12 +355,12 @@ export default function ChatScreen() {
                 !inputText.trim() && styles.sendButtonDisabled,
               ]}
               onPress={handleSend}
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || isRecording}
             >
               <MaterialCommunityIcons
                 name="send"
                 size={20}
-                color={inputText.trim() ? '#000000' : '#8E8E93'}
+                color={inputText.trim() && !isRecording ? '#000000' : '#8E8E93'}
               />
             </TouchableOpacity>
           </View>
@@ -502,15 +506,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FF3B30',  // Made it bright RED to be super visible
+    backgroundColor: '#2C2C2E',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',  // White border to make it even more obvious
   },
   micButtonRecording: {
-    backgroundColor: '#66BB6A',  // Green when recording
+    backgroundColor: 'rgba(255, 59, 48, 0.2)',
   },
   sendButton: {
     width: 36,

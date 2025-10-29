@@ -1,0 +1,22 @@
+# Compiled JavaScript files
+lib/
+lib/**/*.js
+lib/**/*.js.map
+
+# TypeScript v1 declaration files
+typings/
+
+# Node modules
+node_modules/
+
+# Environment variables (NEVER commit this!)
+.env
+.env.local
+.env*.local
+
+# Firebase cache
+.firebase/
+
+# Logs
+*.log
+*.local

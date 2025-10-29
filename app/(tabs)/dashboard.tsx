@@ -275,22 +275,14 @@ export default function DashboardScreen() {
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
           <ScrollView contentContainerStyle={styles.scrollContent}>
-            <Animated.View
-              style={[
-                styles.header,
-                {
-                  opacity: headerOpacity,
-                  transform: [{ translateY: headerTranslateY }],
-                },
-              ]}
-            >
+            <View style={styles.header}>
               <Text variant="headlineMedium" style={styles.greeting}>
                 Hi, {user?.displayName?.split(' ')[0] || 'there'}
               </Text>
               <Text variant="bodyMedium" style={styles.subtitle}>
                 Ready to start your recovery?
               </Text>
-            </Animated.View>
+            </View>
 
             <View style={styles.emptyState}>
               <View style={styles.emptyIconContainer}>

@@ -18,7 +18,7 @@ import { createSessionLog, updatePlanProgress } from '@/services/planService';
 import type { RehabPlan, Exercise } from '@/types/plan';
 import { Timestamp } from 'firebase/firestore';
 import YouTubeModal from './YouTubeModal';
-import { fetchBatchExerciseMedia, type ExerciseMedia } from '@/services/exerciseMediaService';
+import { fetchExerciseMedia, type ExerciseMedia } from '@/services/exerciseMediaService';
 
 type SessionStep = 'prePain' | 'exercises' | 'postPain' | 'complete';
 
@@ -39,33 +39,9 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [exerciseMedia, setExerciseMedia] = useState<Map<string, ExerciseMedia>>(new Map());
-  const [loadingMedia, setLoadingMedia] = useState(false);
+  const [loadingMediaIds, setLoadingMediaIds] = useState<Set<string>>(new Set());
   const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string } | null>(null);
-
-  // Load exercise media when modal opens
-  useEffect(() => {
-    if (visible) {
-      loadExerciseMedia();
-    }
-  }, [visible]);
-
-  const loadExerciseMedia = async () => {
-    try {
-      setLoadingMedia(true);
-      const exercises = plan.exercises.map((ex) => ({
-        id: ex.id,
-        name: ex.name,
-      }));
-
-      const mediaMap = await fetchBatchExerciseMedia(exercises);
-      setExerciseMedia(mediaMap);
-    } catch (error) {
-      console.error('Error loading exercise media:', error);
-    } finally {
-      setLoadingMedia(false);
-    }
-  };
 
   const toggleExercise = (exerciseId: string) => {
     setCompletedExercises((prev) => {
@@ -79,7 +55,9 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
     });
   };
 
-  const toggleExerciseExpanded = (exerciseId: string) => {
+  const toggleExerciseExpanded = async (exerciseId: string, exerciseName: string) => {
+    const isCurrentlyExpanded = expandedExercises.has(exerciseId);
+
     setExpandedExercises((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(exerciseId)) {
@@ -89,6 +67,24 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
       }
       return newSet;
     });
+
+    // If expanding and media not already loaded, fetch fresh per ExerciseDB ToS
+    if (!isCurrentlyExpanded && !exerciseMedia.has(exerciseId)) {
+      setLoadingMediaIds((prev) => new Set(prev).add(exerciseId));
+
+      try {
+        const media = await fetchExerciseMedia(exerciseId, exerciseName);
+        setExerciseMedia((prev) => new Map(prev).set(exerciseId, media));
+      } catch (error) {
+        console.error(`Error fetching media for ${exerciseName}:`, error);
+      } finally {
+        setLoadingMediaIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(exerciseId);
+          return newSet;
+        });
+      }
+    }
   };
 
   const handleWatchVideo = (videoId: string, title: string) => {
@@ -246,7 +242,7 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
               {/* Exercise Header - Toggle Details */}
               <TouchableOpacity
                 style={styles.exerciseHeaderRow}
-                onPress={() => toggleExerciseExpanded(exercise.id)}
+                onPress={() => toggleExerciseExpanded(exercise.id, exercise.name)}
                 activeOpacity={0.7}
               >
                 <View style={styles.exerciseCheckbox}>
@@ -309,6 +305,14 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
                       <MaterialCommunityIcons name="play-circle" size={18} color="#FFFFFF" />
                       <Text style={styles.exerciseWatchVideoText}>Watch Tutorial</Text>
                     </TouchableOpacity>
+                  )}
+
+                  {/* Loading media indicator */}
+                  {loadingMediaIds.has(exercise.id) && (
+                    <View style={styles.exerciseLoadingMedia}>
+                      <ActivityIndicator size="small" color="#66BB6A" />
+                      <Text style={styles.exerciseLoadingMediaText}>Loading visual aids...</Text>
+                    </View>
                   )}
 
                   {/* Mark Complete Button */}
@@ -870,5 +874,17 @@ const styles = StyleSheet.create({
   },
   markCompleteTextActive: {
     color: '#000000',
+  },
+  exerciseLoadingMedia: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    marginBottom: 8,
+  },
+  exerciseLoadingMediaText: {
+    color: '#8E8E93',
+    fontSize: 13,
   },
 });

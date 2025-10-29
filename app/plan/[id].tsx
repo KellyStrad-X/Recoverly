@@ -16,7 +16,7 @@ import { getPlanById } from '@/services/planService';
 import type { RehabPlan } from '@/types/plan';
 import SessionFlowModal from '@/components/SessionFlowModal';
 import YouTubeModal from '@/components/YouTubeModal';
-import { fetchBatchExerciseMedia, type ExerciseMedia } from '@/services/exerciseMediaService';
+import { fetchExerciseMedia, type ExerciseMedia } from '@/services/exerciseMediaService';
 
 export default function PlanDetailScreen() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function PlanDetailScreen() {
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(new Set());
   const [sessionModalVisible, setSessionModalVisible] = useState(false);
   const [exerciseMedia, setExerciseMedia] = useState<Map<string, ExerciseMedia>>(new Map());
-  const [loadingMedia, setLoadingMedia] = useState(false);
+  const [loadingMediaIds, setLoadingMediaIds] = useState<Set<string>>(new Set());
   const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string } | null>(null);
 
@@ -48,9 +48,6 @@ export default function PlanDetailScreen() {
       }
 
       setPlan(fetchedPlan);
-
-      // Fetch exercise media in background
-      loadExerciseMedia(fetchedPlan);
     } catch (error) {
       console.error('Error loading plan:', error);
       Alert.alert('Error', 'Failed to load plan');
@@ -59,26 +56,9 @@ export default function PlanDetailScreen() {
     }
   };
 
-  const loadExerciseMedia = async (planData: RehabPlan) => {
-    try {
-      setLoadingMedia(true);
-      const exercises = planData.exercises.map((ex) => ({
-        id: ex.id,
-        name: ex.name,
-      }));
+  const toggleExercise = async (exerciseId: string, exerciseName: string) => {
+    const isCurrentlyExpanded = expandedExercises.has(exerciseId);
 
-      const mediaMap = await fetchBatchExerciseMedia(exercises);
-      setExerciseMedia(mediaMap);
-      console.log(`Loaded media for ${mediaMap.size} exercises`);
-    } catch (error) {
-      console.error('Error loading exercise media:', error);
-      // Don't alert - media is optional enhancement
-    } finally {
-      setLoadingMedia(false);
-    }
-  };
-
-  const toggleExercise = (exerciseId: string) => {
     setExpandedExercises((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(exerciseId)) {
@@ -88,6 +68,24 @@ export default function PlanDetailScreen() {
       }
       return newSet;
     });
+
+    // If expanding and media not already loaded, fetch fresh per ExerciseDB ToS
+    if (!isCurrentlyExpanded && !exerciseMedia.has(exerciseId)) {
+      setLoadingMediaIds((prev) => new Set(prev).add(exerciseId));
+
+      try {
+        const media = await fetchExerciseMedia(exerciseId, exerciseName);
+        setExerciseMedia((prev) => new Map(prev).set(exerciseId, media));
+      } catch (error) {
+        console.error(`Error fetching media for ${exerciseName}:`, error);
+      } finally {
+        setLoadingMediaIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(exerciseId);
+          return newSet;
+        });
+      }
+    }
   };
 
   const handleStartSession = () => {
@@ -186,7 +184,7 @@ export default function PlanDetailScreen() {
               <TouchableOpacity
                 key={exercise.id}
                 style={styles.exerciseCard}
-                onPress={() => toggleExercise(exercise.id)}
+                onPress={() => toggleExercise(exercise.id, exercise.name)}
                 activeOpacity={0.7}
               >
                 <View style={styles.exerciseHeader}>
@@ -250,7 +248,7 @@ export default function PlanDetailScreen() {
                     )}
 
                     {/* Loading media indicator */}
-                    {loadingMedia && !exerciseMedia.has(exercise.id) && (
+                    {loadingMediaIds.has(exercise.id) && (
                       <View style={styles.loadingMediaContainer}>
                         <ActivityIndicator size="small" color="#66BB6A" />
                         <Text style={styles.loadingMediaText}>Loading visual aids...</Text>

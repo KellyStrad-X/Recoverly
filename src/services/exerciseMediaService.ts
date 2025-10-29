@@ -1,5 +1,20 @@
 import Constants from 'expo-constants';
 
+/**
+ * ExerciseDB & YouTube Exercise Media Service
+ *
+ * IMPORTANT: ExerciseDB ToS Compliance
+ * - Caching is STRICTLY PROHIBITED per ExerciseDB Terms of Service
+ * - All data must be fetched fresh from the API for each use
+ * - Do NOT store, archive, or retain exercise data for future use
+ * - Each exercise expansion triggers a fresh API call
+ *
+ * Implementation:
+ * - Fetch on-demand when user expands an exercise
+ * - No pre-loading, no batch fetching, no persistent caching
+ * - Component-level state is temporary and session-only
+ */
+
 const RAPIDAPI_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_RAPIDAPI_KEY || process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
 const YOUTUBE_API_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_YOUTUBE_API_KEY || process.env.EXPO_PUBLIC_YOUTUBE_API_KEY;
 
@@ -110,13 +125,13 @@ export const searchYouTubeVideo = async (
 
 /**
  * Fetch media for a single exercise (GIF + YouTube)
- * This is the main function to call
+ * This is the main function to call - fetches fresh every time per ExerciseDB ToS
  */
 export const fetchExerciseMedia = async (
   exerciseId: string,
   exerciseName: string
 ): Promise<ExerciseMedia> => {
-  console.log(`Fetching media for: ${exerciseName}`);
+  console.log(`Fetching fresh media for: ${exerciseName}`);
 
   const media: ExerciseMedia = {
     exerciseId,
@@ -148,31 +163,6 @@ export const fetchExerciseMedia = async (
   }
 
   return media;
-};
-
-/**
- * Batch fetch media for multiple exercises
- * Useful for pre-loading all exercises in a plan
- */
-export const fetchBatchExerciseMedia = async (
-  exercises: Array<{ id: string; name: string }>
-): Promise<Map<string, ExerciseMedia>> => {
-  const mediaMap = new Map<string, ExerciseMedia>();
-
-  // Fetch serially to avoid rate limiting (could parallelize with Promise.all if needed)
-  for (const exercise of exercises) {
-    try {
-      const media = await fetchExerciseMedia(exercise.id, exercise.name);
-      mediaMap.set(exercise.id, media);
-
-      // Small delay to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    } catch (error) {
-      console.error(`Error fetching media for ${exercise.name}:`, error);
-    }
-  }
-
-  return mediaMap;
 };
 
 /**

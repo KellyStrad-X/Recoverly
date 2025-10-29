@@ -27,9 +27,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Carousel constants
-const CARD_WIDTH = SCREEN_WIDTH - 64; // Leave 32px padding on each side
-const CARD_HEIGHT = 140;
+const SIDE_PADDING = 24;
 const CARD_SPACING = 16;
+const CARD_WIDTH = SCREEN_WIDTH - (SIDE_PADDING * 2) - CARD_SPACING;
+const CARD_HEIGHT = 140;
 
 interface Message {
   id: string;
@@ -439,10 +440,11 @@ export default function DashboardScreen() {
 
   const renderPlanCard = ({ item, index }: { item: RehabPlan; index: number }) => {
     // Calculate opacity based on scroll position for fade effect (horizontal)
+    const scrollInterval = CARD_WIDTH + CARD_SPACING;
     const inputRange = [
-      (index - 1) * (CARD_WIDTH + CARD_SPACING),
-      index * (CARD_WIDTH + CARD_SPACING),
-      (index + 1) * (CARD_WIDTH + CARD_SPACING),
+      (index - 1) * scrollInterval,
+      index * scrollInterval,
+      (index + 1) * scrollInterval,
     ];
 
     const opacity = scrollX.interpolate({
@@ -681,9 +683,10 @@ export default function DashboardScreen() {
                     showsHorizontalScrollIndicator={false}
                     snapToInterval={CARD_WIDTH + CARD_SPACING}
                     decelerationRate="fast"
-                    snapToAlignment="center"
+                    snapToAlignment="start"
                     contentContainerStyle={{
-                      paddingHorizontal: 32,
+                      paddingLeft: SIDE_PADDING,
+                      paddingRight: SIDE_PADDING,
                     }}
                     onScroll={Animated.event(
                       [{ nativeEvent: { contentOffset: { x: scrollX } } }],

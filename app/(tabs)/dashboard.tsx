@@ -139,6 +139,9 @@ export default function DashboardScreen() {
   const handleStartChat = () => {
     if (!inputText.trim()) return;
 
+    // Dismiss keyboard immediately
+    Keyboard.dismiss();
+
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -312,6 +315,7 @@ export default function DashboardScreen() {
                 multiline
                 maxLength={500}
                 keyboardAppearance="dark"
+                blurOnSubmit={false}
               />
               <TouchableOpacity
                 style={[
@@ -433,11 +437,11 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   emptyState: {
-    flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 16,
-    marginTop: 60,
+    marginTop: 80,
+    marginBottom: 40,
   },
   logoImage: {
     width: 160,

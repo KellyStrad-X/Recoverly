@@ -49,7 +49,32 @@ interface CachedYouTubeVideo {
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours per YouTube ToS
 
 /**
+ * Helper to search ExerciseDB with a specific query
+ */
+const searchExerciseDBQuery = async (query: string): Promise<any[] | null> => {
+  if (!RAPIDAPI_KEY) return null;
+
+  try {
+    const url = `${EXERCISEDB_BASE_URL}/exercises/name/${encodeURIComponent(query)}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': RAPIDAPI_KEY,
+        'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
+      },
+    });
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    return Array.isArray(data) && data.length > 0 ? data : null;
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
  * Search ExerciseDB for a matching exercise by name
+ * Uses multi-strategy search with fallbacks
  * Returns the GIF URL if found
  */
 export const searchExerciseDBByName = async (exerciseName: string): Promise<string | null> => {
@@ -63,41 +88,71 @@ export const searchExerciseDBByName = async (exerciseName: string): Promise<stri
   console.log('✅ RapidAPI Key loaded:', RAPIDAPI_KEY.substring(0, 10) + '...');
 
   try {
-    // Clean up exercise name for search
-    const searchQuery = exerciseName.toLowerCase().trim();
-    const url = `${EXERCISEDB_BASE_URL}/exercises/name/${encodeURIComponent(searchQuery)}`;
+    // Clean up exercise name
+    const cleanName = exerciseName.toLowerCase().trim();
 
-    console.log('📡 ExerciseDB Request URL:', url);
-    console.log('📡 Search query:', searchQuery);
+    // Strategy 1: Try exact name
+    console.log('🎯 Strategy 1: Exact name -', cleanName);
+    let data = await searchExerciseDBQuery(cleanName);
 
-    // Search ExerciseDB by name
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-RapidAPI-Key': RAPIDAPI_KEY,
-        'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
-      },
-    });
+    // Strategy 2: Remove plural 's' (e.g., "hip bridges" → "hip bridge")
+    if (!data && cleanName.endsWith('s')) {
+      const singular = cleanName.slice(0, -1);
+      console.log('🎯 Strategy 2: Singular form -', singular);
+      data = await searchExerciseDBQuery(singular);
+    }
 
-    console.log('📥 ExerciseDB Response status:', response.status, response.statusText);
+    // Strategy 3: Try just the last word (often the main exercise name)
+    if (!data) {
+      const words = cleanName.split(/\s+/);
+      if (words.length > 1) {
+        const lastWord = words[words.length - 1];
+        console.log('🎯 Strategy 3: Last word -', lastWord);
+        data = await searchExerciseDBQuery(lastWord);
+      }
+    }
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Could not read error');
-      console.error('❌ ExerciseDB API error:', response.status, errorText);
+    // Strategy 4: Try the first word
+    if (!data) {
+      const words = cleanName.split(/\s+/);
+      if (words.length > 1) {
+        const firstWord = words[0];
+        console.log('🎯 Strategy 4: First word -', firstWord);
+        data = await searchExerciseDBQuery(firstWord);
+      }
+    }
+
+    // Strategy 5: Try without common words (glute, cable, dumbbell, etc.)
+    if (!data) {
+      const commonWords = ['glute', 'cable', 'dumbbell', 'barbell', 'bodyweight', 'resistance', 'band'];
+      for (const word of commonWords) {
+        if (cleanName.includes(word)) {
+          const withoutCommon = cleanName.replace(word, '').trim();
+          if (withoutCommon) {
+            console.log(`🎯 Strategy 5: Without "${word}" -`, withoutCommon);
+            data = await searchExerciseDBQuery(withoutCommon);
+            if (data) break;
+          }
+        }
+      }
+    }
+
+    if (!data) {
+      console.warn('⚠️ No exercises found after all search strategies');
       return null;
     }
 
-    const data = await response.json();
-    console.log('📦 ExerciseDB Response data:', JSON.stringify(data).substring(0, 200) + '...');
-    console.log('📊 Found', data?.length || 0, 'exercises');
+    console.log('📦 ExerciseDB Response:', JSON.stringify(data).substring(0, 200) + '...');
+    console.log('📊 Found', data.length, 'exercises');
 
     // Return first match's GIF URL
-    if (data && data.length > 0 && data[0].gifUrl) {
+    if (data[0].gifUrl) {
       console.log('✅ Found GIF URL:', data[0].gifUrl);
+      console.log('📝 Exercise name in DB:', data[0].name);
       return data[0].gifUrl;
     }
 
-    console.warn('⚠️ No GIF found in ExerciseDB response');
+    console.warn('⚠️ No GIF URL in exercise data');
     return null;
   } catch (error) {
     console.error('❌ Error searching ExerciseDB:', error);

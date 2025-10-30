@@ -16,8 +16,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { IconButton, Card, Chip, ProgressBar } from 'react-native-paper';
 import { useAuthStore } from '@/stores/authStore';
-import { RehabPlan, Condition, Exercise } from '@/src/types/plan';
-import { getPlanById, getConditionById, updatePlan } from '@/src/services/planService';
+import { RehabPlan, Condition, Exercise } from '@/types/plan';
+import { getPlanById, getConditionById, updatePlan } from '@/services/planService';
 import PlanRefinementChat from '@/components/PlanRefinementChat';
 
 export default function PlanDetailScreen() {

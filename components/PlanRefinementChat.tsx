@@ -13,8 +13,8 @@ import {
   Keyboard,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { RehabPlan, Condition, Exercise, Message } from '@/src/types/plan';
-import { refinePlan } from '@/src/services/aiService';
+import { RehabPlan, Condition, Exercise, Message } from '@/types/plan';
+import { refinePlan } from '@/services/aiService';
 import { useAuthStore } from '@/stores/authStore';
 
 interface PlanRefinementChatProps {

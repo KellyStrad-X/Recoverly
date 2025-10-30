@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, Dimensions, PanResponder } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { SessionLog } from '@/types/plan';
 
@@ -37,14 +37,21 @@ export default function DashboardTracking({
   completedPlansCount,
   recentSessions,
 }: DashboardTrackingProps) {
-  // Generate calendar data for last 30 days
-  const generateCalendarData = () => {
+  const [monthOffset, setMonthOffset] = useState(0); // 0 = current month, -1 = previous, +1 = next
+
+  // Generate calendar data for a specific month
+  const generateCalendarData = (offset: number) => {
     const days = [];
     const today = new Date();
+    const targetDate = new Date(today.getFullYear(), today.getMonth() + offset, 1);
 
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
+    // Get first and last day of the target month
+    const firstDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+    const lastDay = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+
+    // Iterate through all days in the month
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      const date = new Date(targetDate.getFullYear(), targetDate.getMonth(), day);
       date.setHours(0, 0, 0, 0);
 
       // Find sessions for this day
@@ -64,19 +71,48 @@ export default function DashboardTracking({
         avgPain = Math.round(totalPain / daysSessions.length);
       }
 
+      // Check if this is today
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      const isToday = date.getTime() === todayDate.getTime();
+
       days.push({
         date,
         dayOfMonth: date.getDate(),
         hasSession: daysSessions.length > 0,
         avgPain,
-        isToday: i === 0,
+        isToday,
       });
     }
 
     return days;
   };
 
-  const calendarData = generateCalendarData();
+  const calendarData = generateCalendarData(monthOffset);
+
+  // Get month/year string for display
+  const getMonthYearString = () => {
+    const today = new Date();
+    const targetDate = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+    return targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  // Handle swipe gestures
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: (_, gestureState) => {
+      return Math.abs(gestureState.dx) > 20;
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dx > 50) {
+        // Swipe right - previous month
+        setMonthOffset(monthOffset - 1);
+      } else if (gestureState.dx < -50) {
+        // Swipe left - next month
+        setMonthOffset(monthOffset + 1);
+      }
+    },
+  });
 
   // Get color based on pain level
   const getPainColor = (pain: number | null): string => {
@@ -135,10 +171,18 @@ export default function DashboardTracking({
       </View>
 
       {/* Calendar Section */}
-      <View style={styles.calendarSection}>
+      <View style={styles.calendarSection} {...panResponder.panHandlers}>
         <View style={styles.calendarHeader}>
-          <MaterialCommunityIcons name="calendar-month" size={18} color="#FFFFFF" />
-          <Text style={styles.calendarTitle}>30-Day Activity</Text>
+          <TouchableOpacity onPress={() => setMonthOffset(monthOffset - 1)} style={styles.navButton}>
+            <MaterialCommunityIcons name="chevron-left" size={24} color="#66BB6A" />
+          </TouchableOpacity>
+          <View style={styles.calendarTitleContainer}>
+            <MaterialCommunityIcons name="calendar-month" size={18} color="#FFFFFF" />
+            <Text style={styles.calendarTitle}>{getMonthYearString()}</Text>
+          </View>
+          <TouchableOpacity onPress={() => setMonthOffset(monthOffset + 1)} style={styles.navButton}>
+            <MaterialCommunityIcons name="chevron-right" size={24} color="#66BB6A" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.calendarGrid}>
@@ -153,9 +197,6 @@ export default function DashboardTracking({
               >
                 {!day.hasSession && <View style={styles.emptyDot} />}
               </View>
-              {(day.dayOfMonth === 1 || index === 0 || index === calendarData.length - 1) && (
-                <Text style={styles.calendarDayLabel}>{day.dayOfMonth}</Text>
-              )}
             </View>
           ))}
         </View>
@@ -272,13 +313,26 @@ const styles = StyleSheet.create({
   calendarHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'space-between',
     marginBottom: 12,
+  },
+  calendarTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   calendarTitle: {
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
+  },
+  navButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
+    backgroundColor: '#2C2C2E',
   },
   calendarGrid: {
     flexDirection: 'row',
@@ -288,7 +342,6 @@ const styles = StyleSheet.create({
   },
   calendarDay: {
     alignItems: 'center',
-    gap: 4,
   },
   calendarDot: {
     width: 20,
@@ -307,11 +360,6 @@ const styles = StyleSheet.create({
   todayBorder: {
     borderWidth: 2,
     borderColor: '#66BB6A',
-  },
-  calendarDayLabel: {
-    color: '#8E8E93',
-    fontSize: 9,
-    fontWeight: '600',
   },
   legend: {
     flexDirection: 'row',

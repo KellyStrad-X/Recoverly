@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { WebView } from 'react-native-webview';
+import YoutubePlayer from 'react-native-youtube-iframe';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -37,37 +37,6 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
   };
 
   const decodedTitle = decodeHTMLEntities(videoTitle);
-
-  // YouTube embed HTML for mobile WebView compatibility
-  // Using HTML string approach is more reliable than direct URI for React Native
-  const embedHtml = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-        <style>
-          * { margin: 0; padding: 0; }
-          html, body { height: 100%; width: 100%; background: #000; }
-          .video-container { position: relative; width: 100%; height: 100%; }
-          iframe {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            border: none;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="video-container">
-          <iframe
-            src="https://www.youtube.com/embed/${videoId}?autoplay=0&playsinline=1&modestbranding=1&rel=0&enablejsapi=1"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          ></iframe>
-        </div>
-      </body>
-    </html>
-  `;
 
   // Handle opening video in YouTube app
   const openInYouTube = async () => {
@@ -139,27 +108,13 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
                 </Button>
               </View>
             ) : (
-              <WebView
-                source={{ html: embedHtml }}
-                allowsFullscreenVideo
-                allowsInlineMediaPlayback={true}
-                mediaPlaybackRequiresUserAction={false}
-                style={styles.webview}
-                javaScriptEnabled={true}
-                domStorageEnabled={true}
-                scrollEnabled={false}
-                bounces={false}
-                onError={(syntheticEvent) => {
-                  const { nativeEvent } = syntheticEvent;
-                  console.warn('WebView error:', nativeEvent);
+              <YoutubePlayer
+                height={232}
+                videoId={videoId}
+                play={false}
+                onError={(error) => {
+                  console.warn('YouTube Player error:', error);
                   setEmbedError(true);
-                }}
-                onHttpError={(syntheticEvent) => {
-                  const { nativeEvent } = syntheticEvent;
-                  console.warn('WebView HTTP error:', nativeEvent.statusCode);
-                  if (nativeEvent.statusCode >= 400) {
-                    setEmbedError(true);
-                  }
                 }}
               />
             )}

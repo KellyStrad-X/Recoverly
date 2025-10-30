@@ -272,3 +272,66 @@ export const updatePlan = async (
     throw new Error('Failed to update plan');
   }
 };
+
+/**
+ * Get recent session logs for a user (last 30 days)
+ */
+export const getUserRecentSessions = async (userId: string, days: number = 30): Promise<SessionLog[]> => {
+  try {
+    const sessionsRef = collection(db, 'sessionLogs');
+    const thirtyDaysAgo = Timestamp.fromDate(new Date(Date.now() - days * 24 * 60 * 60 * 1000));
+
+    const q = query(
+      sessionsRef,
+      where('userId', '==', userId),
+      where('completedAt', '>=', thirtyDaysAgo),
+      orderBy('completedAt', 'desc')
+    );
+
+    const snapshot = await getDocs(q);
+    const sessions: SessionLog[] = [];
+
+    snapshot.forEach((doc) => {
+      sessions.push({ id: doc.id, ...doc.data() } as SessionLog);
+    });
+
+    return sessions;
+  } catch (error) {
+    console.error('Error fetching recent sessions:', error);
+    return [];
+  }
+};
+
+/**
+ * Get completed plans count for a user
+ */
+export const getUserCompletedPlansCount = async (userId: string): Promise<number> => {
+  try {
+    const plansRef = collection(db, 'rehabPlans');
+    const q = query(
+      plansRef,
+      where('userId', '==', userId),
+      where('status', '==', 'completed')
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.size;
+  } catch (error) {
+    console.error('Error fetching completed plans count:', error);
+    return 0;
+  }
+};
+
+/**
+ * Calculate average pain from recent sessions
+ */
+export const calculateAveragePain = (sessions: SessionLog[]): number => {
+  if (sessions.length === 0) return 0;
+
+  const totalPain = sessions.reduce((sum, session) => {
+    // Average the pre and post pain scores for each session
+    return sum + ((session.prePainScore + session.postPainScore) / 2);
+  }, 0);
+
+  return Math.round(totalPain / sessions.length);
+};

@@ -20,9 +20,15 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
 import { generateRecoveryProtocol, type Message as AIMessage } from '@/services/aiService';
-import { getUserActivePlans } from '@/services/planService';
-import type { RehabPlan } from '@/types/plan';
+import {
+  getUserActivePlans,
+  getUserRecentSessions,
+  getUserCompletedPlansCount,
+  calculateAveragePain,
+} from '@/services/planService';
+import type { RehabPlan, SessionLog } from '@/types/plan';
 import { LinearGradient } from 'expo-linear-gradient';
+import DashboardTracking from '@/components/DashboardTracking';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -64,6 +70,9 @@ export default function DashboardScreen() {
   const [activePlans, setActivePlans] = useState<RehabPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [typewriterText, setTypewriterText] = useState('');
+  const [recentSessions, setRecentSessions] = useState<SessionLog[]>([]);
+  const [completedPlansCount, setCompletedPlansCount] = useState(0);
+  const [averagePain, setAveragePain] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const carouselRef = useRef<FlatList>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -226,28 +235,44 @@ export default function DashboardScreen() {
     }
   }, [messages, isChatExpanded]);
 
-  // Fetch active plans on mount and when returning from paywall
+  // Fetch active plans and tracking data on mount and when returning from paywall
   useEffect(() => {
-    const fetchPlans = async () => {
+    const fetchDashboardData = async () => {
       if (!user) {
         setActivePlans([]);
+        setRecentSessions([]);
+        setCompletedPlansCount(0);
+        setAveragePain(0);
         setLoadingPlans(false);
         return;
       }
 
       try {
         setLoadingPlans(true);
-        const plans = await getUserActivePlans(user.uid);
+
+        // Fetch all data in parallel
+        const [plans, sessions, completedCount] = await Promise.all([
+          getUserActivePlans(user.uid),
+          getUserRecentSessions(user.uid, 30),
+          getUserCompletedPlansCount(user.uid),
+        ]);
+
         setActivePlans(plans);
+        setRecentSessions(sessions);
+        setCompletedPlansCount(completedCount);
+
+        // Calculate average pain
+        const avgPain = calculateAveragePain(sessions);
+        setAveragePain(avgPain);
       } catch (error) {
-        console.error('Error fetching plans:', error);
-        Alert.alert('Error', 'Failed to load recovery plans');
+        console.error('Error fetching dashboard data:', error);
+        Alert.alert('Error', 'Failed to load dashboard data');
       } finally {
         setLoadingPlans(false);
       }
     };
 
-    fetchPlans();
+    fetchDashboardData();
   }, [user]);
 
   // Refresh plans when screen comes into focus (e.g., after paywall)
@@ -702,11 +727,13 @@ export default function DashboardScreen() {
                   />
                 </View>
 
-                {/* Placeholder Section */}
-                <View style={styles.placeholderSection}>
-                  <Text style={styles.placeholderTitle}>Progress & Insights</Text>
-                  <Text style={styles.placeholderText}>Coming Soon</Text>
-                </View>
+                {/* Dashboard Tracking - Widgets & Calendar */}
+                <DashboardTracking
+                  averagePain={averagePain}
+                  activePlansCount={activePlans.length}
+                  completedPlansCount={completedPlansCount}
+                  recentSessions={recentSessions}
+                />
               </Animated.View>
             )}
 
@@ -1281,25 +1308,6 @@ const styles = StyleSheet.create({
     color: '#66BB6A',
     fontSize: 13,
     fontWeight: '700',
-  },
-  // Placeholder Section
-  placeholderSection: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-  },
-  placeholderTitle: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  placeholderText: {
-    color: '#8E8E93',
-    fontSize: 16,
-    fontWeight: '500',
   },
   // Center Logo (Pulsing)
   centerLogoContainer: {

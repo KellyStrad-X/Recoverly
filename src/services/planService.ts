@@ -232,24 +232,6 @@ export const createSessionLog = async (
 };
 
 /**
- * Get a plan by ID
- */
-export const getPlanById = async (planId: string): Promise<RehabPlan | null> => {
-  try {
-    const planRef = doc(db, 'rehabPlans', planId);
-    const planSnap = await getDoc(planRef);
-
-    if (planSnap.exists()) {
-      return { id: planSnap.id, ...planSnap.data() } as RehabPlan;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error fetching plan:', error);
-    throw new Error('Failed to fetch plan');
-  }
-};
-
-/**
  * Get a condition by ID
  */
 export const getConditionById = async (conditionId: string): Promise<Condition | null> => {

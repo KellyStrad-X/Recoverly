@@ -24,7 +24,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Load environment variables
-require('dotenv').config({ path: path.join(__dirname, '../recoverly-app/.env') });
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const YOUTUBE_API_KEY = process.env.EXPO_PUBLIC_YOUTUBE_API_KEY;
 const YOUTUBE_BASE_URL = 'https://www.googleapis.com/youtube/v3';
@@ -281,7 +281,7 @@ async function main() {
   console.log('✅ YouTube API key found');
 
   // Load exercises
-  const exercisesPath = path.join(__dirname, '../recoverly-app/functions/src/rehab-exercises.json');
+  const exercisesPath = path.join(__dirname, '../functions/src/rehab-exercises.json');
   const exercisesData = JSON.parse(fs.readFileSync(exercisesPath, 'utf8'));
   let exercises = exercisesData.exercises;
 

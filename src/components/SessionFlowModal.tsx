@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -9,6 +9,10 @@ import {
   Animated,
   Image,
   ActivityIndicator,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -20,7 +24,7 @@ import { Timestamp } from 'firebase/firestore';
 import YouTubeModal from './YouTubeModal';
 import { fetchExerciseMedia, type ExerciseMedia } from '@/services/exerciseMediaService';
 
-type SessionStep = 'prePain' | 'exercises' | 'postPain' | 'complete';
+type SessionStep = 'prePain' | 'exercises' | 'postPain' | 'notes' | 'complete';
 
 interface Props {
   visible: boolean;
@@ -29,13 +33,15 @@ interface Props {
   onComplete: () => void;
 }
 
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 export default function SessionFlowModal({ visible, plan, onClose, onComplete }: Props) {
   const user = useAuthStore((state) => state.user);
   const [step, setStep] = useState<SessionStep>('prePain');
   const [prePainScore, setPrePainScore] = useState(5);
   const [postPainScore, setPostPainScore] = useState(5);
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
-  const [expandedExercises, setExpandedExercises] = useState<Set<string>>(new Set());
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [exerciseMedia, setExerciseMedia] = useState<Map<string, ExerciseMedia>>(new Map());
@@ -43,107 +49,146 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
   const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string } | null>(null);
 
-  const toggleExercise = (exerciseId: string) => {
-    setCompletedExercises((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(exerciseId)) {
+  // Animation values
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (visible) {
+      // Load media for all exercises when modal opens
+      plan.exercises.forEach(exercise => {
+        loadExerciseMedia(exercise.id, exercise.name);
+      });
+    }
+  }, [visible, plan]);
+
+  const loadExerciseMedia = async (exerciseId: string, exerciseName: string) => {
+    if (exerciseMedia.has(exerciseId) || loadingMediaIds.has(exerciseId)) return;
+
+    setLoadingMediaIds(prev => new Set([...prev, exerciseId]));
+    try {
+      const media = await fetchExerciseMedia(exerciseName);
+      if (media) {
+        setExerciseMedia(prev => new Map(prev).set(exerciseId, media));
+      }
+    } catch (error) {
+      console.error('Failed to fetch media for:', exerciseName);
+    } finally {
+      setLoadingMediaIds(prev => {
+        const newSet = new Set(prev);
         newSet.delete(exerciseId);
-      } else {
-        newSet.add(exerciseId);
-      }
-      return newSet;
-    });
-  };
-
-  const toggleExerciseExpanded = async (exerciseId: string, exerciseName: string) => {
-    const isCurrentlyExpanded = expandedExercises.has(exerciseId);
-
-    setExpandedExercises((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(exerciseId)) {
-        newSet.delete(exerciseId);
-      } else {
-        newSet.add(exerciseId);
-      }
-      return newSet;
-    });
-
-    // Component-level caching: Only fetch if not already in state
-    // This is ToS compliant - prevents redundant API calls during session
-    if (!isCurrentlyExpanded && !exerciseMedia.has(exerciseId)) {
-      setLoadingMediaIds((prev) => new Set(prev).add(exerciseId));
-
-      try {
-        const media = await fetchExerciseMedia(exerciseId, exerciseName);
-        setExerciseMedia((prev) => new Map(prev).set(exerciseId, media));
-      } catch (error) {
-        console.error(`Error fetching media for ${exerciseName}:`, error);
-      } finally {
-        setLoadingMediaIds((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(exerciseId);
-          return newSet;
-        });
-      }
+        return newSet;
+      });
     }
   };
 
-  const handleWatchVideo = (videoId: string, title: string) => {
-    setSelectedVideo({ videoId, title });
-    setYoutubeModalVisible(true);
+  const markExerciseComplete = () => {
+    const currentExercise = plan.exercises[currentExerciseIndex];
+    setCompletedExercises(prev => new Set([...prev, currentExercise.id]));
+
+    // Auto-advance to next exercise or finish
+    if (currentExerciseIndex < plan.exercises.length - 1) {
+      animateToNextExercise();
+    } else {
+      // All exercises done, go to post-pain
+      setStep('postPain');
+    }
+  };
+
+  const animateToNextExercise = () => {
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: -50,
+        duration: 0,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setCurrentExerciseIndex(prev => prev + 1);
+      slideAnim.setValue(50);
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  };
+
+  const goToPreviousExercise = () => {
+    if (currentExerciseIndex > 0) {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start(() => {
+        setCurrentExerciseIndex(prev => prev - 1);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }).start();
+      });
+    }
+  };
+
+  const skipExercise = () => {
+    if (currentExerciseIndex < plan.exercises.length - 1) {
+      animateToNextExercise();
+    } else {
+      setStep('postPain');
+    }
   };
 
   const handleNextFromPrePain = () => {
     setStep('exercises');
+    setCurrentExerciseIndex(0);
   };
 
-  const handleNextFromExercises = () => {
-    if (completedExercises.size === 0) {
-      alert('Please complete at least one exercise');
-      return;
-    }
-    setStep('postPain');
+  const handleNextFromPostPain = () => {
+    setStep('notes');
   };
 
-  const handleFinish = async () => {
+  const handleCompleteSession = async () => {
     if (!user) return;
 
+    setSaving(true);
     try {
-      setSaving(true);
-
-      const sessionNumber = plan.sessionsCompleted + 1;
-      const weekNumber = Math.ceil(sessionNumber / 7);
-
-      // Create session log data
-      const sessionData: any = {
+      // Save session log
+      await createSessionLog({
         userId: user.uid,
         planId: plan.id,
         conditionId: plan.conditionId,
         prePainScore,
         postPainScore,
         exercisesCompleted: Array.from(completedExercises),
-        sessionNumber,
-        weekNumber,
-      };
-
-      // Only include notes if they exist
-      if (notes.trim()) {
-        sessionData.notes = notes.trim();
-      }
-
-      // Create session log
-      await createSessionLog(sessionData);
+        notes: notes.trim() || undefined,
+        sessionNumber: plan.sessionsCompleted + 1,
+        weekNumber: Math.floor(plan.currentDay / 7) + 1,
+      });
 
       // Update plan progress
       await updatePlanProgress(plan.id, {
-        sessionsCompleted: sessionNumber,
+        sessionsCompleted: plan.sessionsCompleted + 1,
         currentDay: plan.currentDay + 1,
       });
 
       setStep('complete');
+      setTimeout(() => {
+        handleCompleteAndClose();
+      }, 2000);
     } catch (error) {
       console.error('Error saving session:', error);
-      alert('Failed to save session. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -155,6 +200,7 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
     setPrePainScore(5);
     setPostPainScore(5);
     setCompletedExercises(new Set());
+    setCurrentExerciseIndex(0);
     setNotes('');
     onClose();
   };
@@ -220,302 +266,340 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
     </View>
   );
 
-  const renderExercisesStep = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.stepHeader}>
-        <Text style={styles.stepTitle}>Complete Your Exercises</Text>
-        <Text style={styles.stepSubtitle}>
-          Tap to see details • Check off when done
-        </Text>
-      </View>
-
-      <ScrollView style={styles.exercisesList} showsVerticalScrollIndicator={false}>
-        {plan.exercises.map((exercise, index) => {
-          const isCompleted = completedExercises.has(exercise.id);
-          const isExpanded = expandedExercises.has(exercise.id);
-          const media = exerciseMedia.get(exercise.id);
-
-          return (
-            <View
-              key={exercise.id}
-              style={[styles.exerciseItem, isCompleted && styles.exerciseItemCompleted]}
-            >
-              {/* Exercise Header - Toggle Details */}
-              <TouchableOpacity
-                style={styles.exerciseHeaderRow}
-                onPress={() => toggleExerciseExpanded(exercise.id, exercise.name)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.exerciseCheckbox}>
-                  {isCompleted && (
-                    <MaterialCommunityIcons name="check" size={20} color="#000000" />
-                  )}
-                </View>
-                <View style={styles.exerciseContent}>
-                  <Text style={[styles.exerciseNameText, isCompleted && styles.exerciseNameCompleted]}>
-                    {index + 1}. {exercise.name}
-                  </Text>
-                  <Text style={styles.exerciseSetsRepsText}>
-                    {exercise.sets} sets × {exercise.reps}
-                  </Text>
-                </View>
-                <MaterialCommunityIcons
-                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                  size={24}
-                  color="#8E8E93"
-                />
-              </TouchableOpacity>
-
-              {/* Expanded Details */}
-              {isExpanded && (
-                <View style={styles.exerciseExpandedDetails}>
-                  {/* Instructions */}
-                  <View style={styles.exerciseDetailSection}>
-                    <Text style={styles.exerciseDetailLabel}>Instructions</Text>
-                    <Text style={styles.exerciseDetailText}>{exercise.instructions}</Text>
-                  </View>
-
-                  {/* Safety Notes */}
-                  {exercise.safetyNotes && (
-                    <View style={styles.exerciseDetailSection}>
-                      <View style={styles.exerciseSafetyHeader}>
-                        <MaterialCommunityIcons name="shield-alert" size={16} color="#FF9800" />
-                        <Text style={styles.exerciseSafetyLabel}>Safety Notes</Text>
-                      </View>
-                      <Text style={styles.exerciseSafetyText}>{exercise.safetyNotes}</Text>
-                    </View>
-                  )}
-
-                  {/* GIF */}
-                  {media?.gifUrl && (
-                    <View style={styles.exerciseGifContainer}>
-                      <Image
-                        source={{ uri: media.gifUrl }}
-                        style={styles.exerciseGifImage}
-                        resizeMode="contain"
-                      />
-                    </View>
-                  )}
-
-                  {/* YouTube Tutorial Button - Optional Enhancement */}
-                  {media?.youtubeVideoId && media?.youtubeVideoTitle && (
-                    <TouchableOpacity
-                      style={styles.exerciseWatchVideoButton}
-                      onPress={() => handleWatchVideo(media.youtubeVideoId!, media.youtubeVideoTitle!)}
-                    >
-                      <MaterialCommunityIcons name="youtube" size={18} color="#FF0000" />
-                      <Text style={styles.exerciseWatchVideoText}>Watch Tutorial</Text>
-                    </TouchableOpacity>
-                  )}
-
-                  {/* Loading media indicator */}
-                  {loadingMediaIds.has(exercise.id) && (
-                    <View style={styles.exerciseLoadingMedia}>
-                      <ActivityIndicator size="small" color="#66BB6A" />
-                      <Text style={styles.exerciseLoadingMediaText}>Loading visual aids...</Text>
-                    </View>
-                  )}
-
-                  {/* Mark Complete Button */}
-                  <TouchableOpacity
-                    style={[styles.markCompleteButton, isCompleted && styles.markCompleteButtonActive]}
-                    onPress={() => toggleExercise(exercise.id)}
-                  >
-                    <MaterialCommunityIcons
-                      name={isCompleted ? 'check-circle' : 'circle-outline'}
-                      size={20}
-                      color={isCompleted ? '#000000' : '#FFFFFF'}
-                    />
-                    <Text style={[styles.markCompleteText, isCompleted && styles.markCompleteTextActive]}>
-                      {isCompleted ? 'Completed' : 'Mark as Complete'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          );
-        })}
-      </ScrollView>
-
-      <View style={styles.progressIndicator}>
-        <Text style={styles.progressText}>
-          {completedExercises.size} of {plan.exercises.length} exercises completed
-        </Text>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.primaryButton, completedExercises.size === 0 && styles.buttonDisabled]}
-        onPress={handleNextFromExercises}
-        disabled={completedExercises.size === 0}
-      >
-        <Text style={styles.primaryButtonText}>Continue</Text>
-        <MaterialCommunityIcons name="arrow-right" size={20} color="#000000" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderPostPainStep = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.stepHeader}>
-        <Text style={styles.stepTitle}>How's your pain now?</Text>
-        <Text style={styles.stepSubtitle}>Rate your pain level after the session</Text>
-      </View>
-
-      <View style={styles.painScoreDisplay}>
-        <Text style={styles.painEmoji}>{getPainEmoji(postPainScore)}</Text>
-        <Text style={styles.painScore}>{postPainScore}/10</Text>
-        <Text style={styles.painLabel}>{getPainLabel(postPainScore)}</Text>
-      </View>
-
-      {/* Pain Comparison */}
-      <View style={styles.painComparisonCard}>
-        <Text style={styles.comparisonLabel}>Pain Change</Text>
-        <View style={styles.comparisonRow}>
-          <View style={styles.comparisonItem}>
-            <Text style={styles.comparisonValue}>Before: {prePainScore}</Text>
-          </View>
-          <MaterialCommunityIcons
-            name={postPainScore < prePainScore ? 'arrow-down' : postPainScore > prePainScore ? 'arrow-up' : 'minus'}
-            size={24}
-            color={postPainScore < prePainScore ? '#66BB6A' : postPainScore > prePainScore ? '#FF5252' : '#8E8E93'}
-          />
-          <View style={styles.comparisonItem}>
-            <Text style={styles.comparisonValue}>After: {postPainScore}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.sliderContainer}>
-        <Slider
-          style={styles.slider}
-          minimumValue={0}
-          maximumValue={10}
-          step={1}
-          value={postPainScore}
-          onValueChange={setPostPainScore}
-          minimumTrackTintColor="#66BB6A"
-          maximumTrackTintColor="#2C2C2E"
-          thumbTintColor="#66BB6A"
-        />
-        <View style={styles.sliderLabels}>
-          <Text style={styles.sliderLabel}>0 - No Pain</Text>
-          <Text style={styles.sliderLabel}>10 - Worst</Text>
-        </View>
-      </View>
-
-      {/* Optional Notes */}
-      <View style={styles.notesContainer}>
-        <Text style={styles.notesLabel}>Notes (optional)</Text>
-        <TextInput
-          style={styles.notesInput}
-          placeholder="How did the session feel?"
-          placeholderTextColor="#8E8E93"
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-          maxLength={200}
-          keyboardAppearance="dark"
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.primaryButton, saving && styles.buttonDisabled]}
-        onPress={handleFinish}
-        disabled={saving}
-      >
-        <Text style={styles.primaryButtonText}>
-          {saving ? 'Saving...' : 'Finish Session'}
-        </Text>
-        <MaterialCommunityIcons name="check" size={20} color="#000000" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderCompleteStep = () => {
-    const painImproved = postPainScore < prePainScore;
-    const painDiff = Math.abs(postPainScore - prePainScore);
+  const renderExercisesStep = () => {
+    const currentExercise = plan.exercises[currentExerciseIndex];
+    const isCompleted = completedExercises.has(currentExercise.id);
+    const media = exerciseMedia.get(currentExercise.id);
+    const progress = ((currentExerciseIndex + 1) / plan.exercises.length) * 100;
 
     return (
-      <View style={styles.stepContainer}>
-        <View style={styles.celebrationContainer}>
-          <Text style={styles.celebrationEmoji}>🎉</Text>
-          <Text style={styles.celebrationTitle}>Session Complete!</Text>
-          <Text style={styles.celebrationSubtitle}>
-            Day {plan.currentDay + 2} • {plan.sessionsCompleted + 1} sessions total
+      <View style={styles.fullScreenExerciseContainer}>
+        {/* Progress Bar */}
+        <View style={styles.exerciseProgressContainer}>
+          <View style={styles.exerciseProgressBar}>
+            <View style={[styles.exerciseProgressFill, { width: `${progress}%` }]} />
+          </View>
+          <Text style={styles.exerciseProgressText}>
+            Exercise {currentExerciseIndex + 1} of {plan.exercises.length}
           </Text>
         </View>
 
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
-            <MaterialCommunityIcons name="check-circle" size={24} color="#66BB6A" />
-            <Text style={styles.summaryText}>
-              {completedExercises.size} exercises completed
-            </Text>
-          </View>
-          {painImproved && painDiff > 0 && (
-            <View style={styles.summaryRow}>
-              <MaterialCommunityIcons name="trending-down" size={24} color="#66BB6A" />
-              <Text style={styles.summaryText}>
-                Pain decreased by {painDiff} point{painDiff > 1 ? 's' : ''}
-              </Text>
+        {/* Exercise Card */}
+        <Animated.View
+          style={[
+            styles.exerciseCard,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateX: slideAnim }],
+            },
+          ]}
+        >
+          <ScrollView
+            style={styles.exerciseScrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.exerciseScrollContent}
+          >
+            {/* Exercise Name */}
+            <View style={styles.exerciseNameContainer}>
+              <Text style={styles.exerciseName}>{currentExercise.name}</Text>
+              {isCompleted && (
+                <View style={styles.completedBadge}>
+                  <MaterialCommunityIcons name="check" size={16} color="#000000" />
+                  <Text style={styles.completedBadgeText}>Done</Text>
+                </View>
+              )}
             </View>
-          )}
+
+            {/* Sets & Reps */}
+            <View style={styles.exerciseSetsReps}>
+              <View style={styles.exerciseMetric}>
+                <Text style={styles.exerciseMetricValue}>{currentExercise.sets}</Text>
+                <Text style={styles.exerciseMetricLabel}>Sets</Text>
+              </View>
+              <View style={styles.exerciseMetricDivider} />
+              <View style={styles.exerciseMetric}>
+                <Text style={styles.exerciseMetricValue}>{currentExercise.reps}</Text>
+                <Text style={styles.exerciseMetricLabel}>Reps</Text>
+              </View>
+            </View>
+
+            {/* Visual Aid */}
+            {media && (
+              <View style={styles.exerciseMediaContainer}>
+                {media.type === 'gif' && media.gifUrl ? (
+                  <Image
+                    source={{ uri: media.gifUrl }}
+                    style={styles.exerciseGif}
+                    resizeMode="contain"
+                  />
+                ) : media.type === 'youtube' && media.youtubeVideoId ? (
+                  <TouchableOpacity
+                    style={styles.youtubeThumbnail}
+                    onPress={() => {
+                      setSelectedVideo({
+                        videoId: media.youtubeVideoId!,
+                        title: currentExercise.name,
+                      });
+                      setYoutubeModalVisible(true);
+                    }}
+                  >
+                    <Image
+                      source={{ uri: media.youtubeThumbnail }}
+                      style={styles.youtubeThumbnailImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.youtubePlayButton}>
+                      <MaterialCommunityIcons name="play" size={32} color="#FFFFFF" />
+                    </View>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            )}
+
+            {/* Instructions */}
+            <View style={styles.exerciseInstructionsContainer}>
+              <Text style={styles.exerciseInstructionsTitle}>How to perform:</Text>
+              <Text style={styles.exerciseInstructions}>{currentExercise.instructions}</Text>
+            </View>
+
+            {/* Safety Notes */}
+            {currentExercise.safetyNotes && (
+              <View style={styles.exerciseSafetyContainer}>
+                <View style={styles.exerciseSafetyHeader}>
+                  <MaterialCommunityIcons name="alert-circle" size={18} color="#FFA726" />
+                  <Text style={styles.exerciseSafetyTitle}>Safety Notes</Text>
+                </View>
+                <Text style={styles.exerciseSafetyText}>{currentExercise.safetyNotes}</Text>
+              </View>
+            )}
+          </ScrollView>
+
+          {/* Action Buttons */}
+          <View style={styles.exerciseActions}>
+            <View style={styles.navigationButtons}>
+              {currentExerciseIndex > 0 && (
+                <TouchableOpacity
+                  style={styles.secondaryButton}
+                  onPress={goToPreviousExercise}
+                >
+                  <MaterialCommunityIcons name="chevron-left" size={20} color="#8E8E93" />
+                  <Text style={styles.secondaryButtonText}>Previous</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.skipButton}
+                onPress={skipExercise}
+              >
+                <Text style={styles.skipButtonText}>Skip</Text>
+                <MaterialCommunityIcons name="chevron-right" size={20} color="#8E8E93" />
+              </TouchableOpacity>
+            </View>
+
+            {!isCompleted ? (
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={markExerciseComplete}
+              >
+                <MaterialCommunityIcons name="check-circle" size={20} color="#000000" />
+                <Text style={styles.primaryButtonText}>Mark Complete</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={currentExerciseIndex < plan.exercises.length - 1 ? animateToNextExercise : () => setStep('postPain')}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {currentExerciseIndex < plan.exercises.length - 1 ? 'Next Exercise' : 'Continue'}
+                </Text>
+                <MaterialCommunityIcons name="arrow-right" size={20} color="#000000" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </Animated.View>
+      </View>
+    );
+  };
+
+  const renderPostPainStep = () => {
+    const painChange = prePainScore - postPainScore;
+    const improved = painChange > 0;
+    const worsen = painChange < 0;
+
+    return (
+      <View style={styles.stepContainer}>
+        <View style={styles.stepHeader}>
+          <Text style={styles.stepTitle}>How do you feel now?</Text>
+          <Text style={styles.stepSubtitle}>Rate your pain after the exercises</Text>
         </View>
 
-        <TouchableOpacity style={styles.primaryButton} onPress={handleCompleteAndClose}>
-          <Text style={styles.primaryButtonText}>Back to Plan</Text>
+        <View style={styles.painScoreDisplay}>
+          <Text style={styles.painEmoji}>{getPainEmoji(postPainScore)}</Text>
+          <Text style={styles.painScore}>{postPainScore}/10</Text>
+          <Text style={styles.painLabel}>{getPainLabel(postPainScore)}</Text>
+        </View>
+
+        {/* Pain Comparison */}
+        {prePainScore !== postPainScore && (
+          <View style={[styles.painComparison, improved && styles.painImproved, worsen && styles.painWorsened]}>
+            <MaterialCommunityIcons
+              name={improved ? 'trending-down' : 'trending-up'}
+              size={20}
+              color={improved ? '#66BB6A' : '#FF6B6B'}
+            />
+            <Text style={[styles.painComparisonText, improved && styles.painImprovedText, worsen && styles.painWorsenedText]}>
+              {improved ? `Improved by ${painChange} point${painChange > 1 ? 's' : ''}` :
+               worsen ? `Increased by ${Math.abs(painChange)} point${Math.abs(painChange) > 1 ? 's' : ''}` :
+               'No change'}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.sliderContainer}>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={10}
+            step={1}
+            value={postPainScore}
+            onValueChange={setPostPainScore}
+            minimumTrackTintColor="#66BB6A"
+            maximumTrackTintColor="#2C2C2E"
+            thumbTintColor="#66BB6A"
+          />
+          <View style={styles.sliderLabels}>
+            <Text style={styles.sliderLabel}>0 - No Pain</Text>
+            <Text style={styles.sliderLabel}>10 - Worst</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.primaryButton} onPress={handleNextFromPostPain}>
+          <Text style={styles.primaryButtonText}>Continue</Text>
+          <MaterialCommunityIcons name="arrow-right" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
     );
   };
 
+  const renderNotesStep = () => (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.stepContainer}
+    >
+      <View style={styles.stepHeader}>
+        <Text style={styles.stepTitle}>Session Notes (Optional)</Text>
+        <Text style={styles.stepSubtitle}>How did this session feel?</Text>
+      </View>
+
+      <TextInput
+        style={styles.notesInput}
+        placeholder="Any notes about this session? How did it feel? Any exercises particularly helpful or difficult?"
+        placeholderTextColor="#8E8E93"
+        value={notes}
+        onChangeText={setNotes}
+        multiline
+        numberOfLines={8}
+        textAlignVertical="top"
+        keyboardAppearance="dark" // This makes the keyboard dark on iOS
+        returnKeyType="done"
+        onSubmitEditing={Keyboard.dismiss}
+      />
+
+      <View style={styles.notesActions}>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={handleCompleteSession}
+        >
+          <Text style={styles.skipButtonText}>Skip</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={handleCompleteSession}
+          disabled={saving}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color="#000000" />
+          ) : (
+            <>
+              <MaterialCommunityIcons name="check-circle" size={20} color="#000000" />
+              <Text style={styles.primaryButtonText}>Complete Session</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
+  );
+
+  const renderCompleteStep = () => (
+    <View style={styles.stepContainer}>
+      <View style={styles.completeIconContainer}>
+        <MaterialCommunityIcons name="check-circle" size={80} color="#66BB6A" />
+      </View>
+      <Text style={styles.completeTitle}>Great Work!</Text>
+      <Text style={styles.completeSubtitle}>Session completed successfully</Text>
+
+      <View style={styles.completeSummary}>
+        <View style={styles.completeSummaryItem}>
+          <MaterialCommunityIcons name="check-all" size={24} color="#66BB6A" />
+          <Text style={styles.completeSummaryText}>
+            {completedExercises.size} of {plan.exercises.length} exercises completed
+          </Text>
+        </View>
+        {prePainScore !== postPainScore && (
+          <View style={styles.completeSummaryItem}>
+            <MaterialCommunityIcons
+              name={prePainScore > postPainScore ? 'trending-down' : 'trending-up'}
+              size={24}
+              color={prePainScore > postPainScore ? '#66BB6A' : '#FFA726'}
+            />
+            <Text style={styles.completeSummaryText}>
+              Pain: {prePainScore} → {postPainScore}
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <View style={styles.container}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      onRequestClose={handleClose}
+    >
+      <View style={styles.modalContainer}>
         {/* Header */}
         <View style={styles.modalHeader}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+          <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <MaterialCommunityIcons name="close" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Session</Text>
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Step Indicator */}
-        {step !== 'complete' && (
-          <View style={styles.stepIndicator}>
-            <View style={[styles.stepDot, step === 'prePain' && styles.stepDotActive]} />
-            <View style={styles.stepLine} />
-            <View style={[styles.stepDot, step === 'exercises' && styles.stepDotActive]} />
-            <View style={styles.stepLine} />
-            <View style={[styles.stepDot, step === 'postPain' && styles.stepDotActive]} />
-          </View>
-        )}
-
         {/* Content */}
-        <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {step === 'prePain' && renderPrePainStep()}
-          {step === 'exercises' && renderExercisesStep()}
-          {step === 'postPain' && renderPostPainStep()}
-          {step === 'complete' && renderCompleteStep()}
-        </ScrollView>
-      </View>
+        {step === 'prePain' && renderPrePainStep()}
+        {step === 'exercises' && renderExercisesStep()}
+        {step === 'postPain' && renderPostPainStep()}
+        {step === 'notes' && renderNotesStep()}
+        {step === 'complete' && renderCompleteStep()}
 
-      {/* YouTube Video Modal */}
-      {youtubeModalVisible && selectedVideo && (
-        <YouTubeModal
-          visible={youtubeModalVisible}
-          videoId={selectedVideo.videoId}
-          videoTitle={selectedVideo.title}
-          onClose={() => setYoutubeModalVisible(false)}
-        />
-      )}
+        {/* YouTube Modal */}
+        {selectedVideo && (
+          <YouTubeModal
+            visible={youtubeModalVisible}
+            videoId={selectedVideo.videoId}
+            title={selectedVideo.title}
+            onClose={() => setYoutubeModalVisible(false)}
+          />
+        )}
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  modalContainer: {
     flex: 1,
     backgroundColor: '#000000',
   },
@@ -524,7 +608,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 60,
+    paddingTop: 48,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#1C1C1E',
@@ -532,81 +616,51 @@ const styles = StyleSheet.create({
   closeButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1C1C1E',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalTitle: {
+    fontSize: 17,
+    fontWeight: '600',
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  stepIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 24,
-  },
-  stepDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#2C2C2E',
-  },
-  stepDotActive: {
-    backgroundColor: '#66BB6A',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-  },
-  stepLine: {
-    width: 40,
-    height: 2,
-    backgroundColor: '#2C2C2E',
-  },
-  scrollContent: {
-    flex: 1,
   },
   stepContainer: {
+    flex: 1,
     padding: 24,
   },
   stepHeader: {
     marginBottom: 32,
   },
   stepTitle: {
-    color: '#FFFFFF',
     fontSize: 28,
     fontWeight: '700',
+    color: '#FFFFFF',
     marginBottom: 8,
-    textAlign: 'center',
   },
   stepSubtitle: {
-    color: '#8E8E93',
     fontSize: 16,
-    textAlign: 'center',
+    color: '#8E8E93',
   },
   painScoreDisplay: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
   },
   painEmoji: {
-    fontSize: 80,
+    fontSize: 72,
     marginBottom: 16,
   },
   painScore: {
-    color: '#66BB6A',
     fontSize: 48,
     fontWeight: '700',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   painLabel: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 18,
+    color: '#8E8E93',
   },
   sliderContainer: {
-    marginBottom: 32,
+    marginBottom: 40,
   },
   slider: {
     width: '100%',
@@ -618,272 +672,300 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sliderLabel: {
-    color: '#8E8E93',
     fontSize: 14,
+    color: '#8E8E93',
   },
   primaryButton: {
-    backgroundColor: '#66BB6A',
-    paddingVertical: 18,
-    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#66BB6A',
+    paddingVertical: 16,
+    borderRadius: 12,
     gap: 8,
   },
   primaryButtonText: {
-    color: '#000000',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  exercisesList: {
-    maxHeight: 400,
-    marginBottom: 16,
-  },
-  exerciseItem: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
-  exerciseItemCompleted: {
-    backgroundColor: '#1E2C1F',
-    borderWidth: 1,
-    borderColor: '#66BB6A',
-  },
-  exerciseCheckbox: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: '#66BB6A',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    backgroundColor: '#66BB6A',
-  },
-  exerciseContent: {
-    flex: 1,
-  },
-  exerciseNameText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-    marginBottom: 4,
+    color: '#000000',
   },
-  exerciseNameCompleted: {
-    color: '#66BB6A',
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 4,
   },
-  exerciseSetsRepsText: {
+  secondaryButtonText: {
+    fontSize: 15,
     color: '#8E8E93',
-    fontSize: 14,
   },
-  progressIndicator: {
+  skipButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 4,
+  },
+  skipButtonText: {
+    fontSize: 15,
+    color: '#8E8E93',
+  },
+  painComparison: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     backgroundColor: '#1C1C1E',
     borderRadius: 8,
-    padding: 12,
     marginBottom: 24,
+    gap: 8,
   },
-  progressText: {
-    color: '#66BB6A',
+  painImproved: {
+    backgroundColor: '#66BB6A20',
+  },
+  painWorsened: {
+    backgroundColor: '#FF6B6B20',
+  },
+  painComparisonText: {
     fontSize: 15,
     fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  painImprovedText: {
+    color: '#66BB6A',
+  },
+  painWorsenedText: {
+    color: '#FF6B6B',
+  },
+
+  // Full Screen Exercise Styles
+  fullScreenExerciseContainer: {
+    flex: 1,
+  },
+  exerciseProgressContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  exerciseProgressBar: {
+    height: 4,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  exerciseProgressFill: {
+    height: '100%',
+    backgroundColor: '#66BB6A',
+  },
+  exerciseProgressText: {
+    fontSize: 14,
+    color: '#8E8E93',
     textAlign: 'center',
   },
-  painComparisonCard: {
+  exerciseCard: {
+    flex: 1,
     backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  comparisonLabel: {
-    color: '#8E8E93',
+  exerciseScrollView: {
+    flex: 1,
+  },
+  exerciseScrollContent: {
+    padding: 20,
+  },
+  exerciseNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  exerciseName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    flex: 1,
+  },
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#66BB6A',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 4,
+  },
+  completedBadgeText: {
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 12,
-    textAlign: 'center',
+    color: '#000000',
   },
-  comparisonRow: {
+  exerciseSetsReps: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    paddingVertical: 20,
+    marginBottom: 24,
   },
-  comparisonItem: {
+  exerciseMetric: {
     flex: 1,
     alignItems: 'center',
   },
-  comparisonValue: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  notesContainer: {
-    marginBottom: 24,
-  },
-  notesLabel: {
-    color: '#8E8E93',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  notesInput: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 16,
-    color: '#FFFFFF',
-    fontSize: 16,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  celebrationContainer: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  celebrationEmoji: {
-    fontSize: 80,
-    marginBottom: 16,
-  },
-  celebrationTitle: {
-    color: '#FFFFFF',
+  exerciseMetricValue: {
     fontSize: 32,
     fontWeight: '700',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  celebrationSubtitle: {
     color: '#66BB6A',
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
+    marginBottom: 4,
   },
-  summaryCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 32,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  summaryText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  exerciseHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  exerciseExpandedDetails: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#2C2C2E',
-  },
-  exerciseDetailSection: {
-    marginBottom: 16,
-  },
-  exerciseDetailLabel: {
+  exerciseMetricLabel: {
+    fontSize: 14,
     color: '#8E8E93',
-    fontSize: 12,
-    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  },
+  exerciseMetricDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#3A3A3C',
+  },
+  exerciseMediaContainer: {
+    marginBottom: 24,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  exerciseGif: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#2C2C2E',
+  },
+  youtubeThumbnail: {
+    width: '100%',
+    height: 200,
+    position: 'relative',
+  },
+  youtubeThumbnailImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#2C2C2E',
+  },
+  youtubePlayButton: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -25 }, { translateY: -25 }],
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  exerciseInstructionsContainer: {
+    marginBottom: 20,
+  },
+  exerciseInstructionsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
-  exerciseDetailText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    lineHeight: 20,
+  exerciseInstructions: {
+    fontSize: 15,
+    color: '#E0E0E0',
+    lineHeight: 22,
+  },
+  exerciseSafetyContainer: {
+    backgroundColor: '#FFA72620',
+    borderRadius: 12,
+    padding: 16,
   },
   exerciseSafetyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
     marginBottom: 8,
+    gap: 8,
   },
-  exerciseSafetyLabel: {
-    color: '#FF9800',
-    fontSize: 12,
+  exerciseSafetyTitle: {
+    fontSize: 15,
     fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: '#FFA726',
   },
   exerciseSafetyText: {
-    color: '#FF9800',
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  exerciseGifContainer: {
-    marginBottom: 12,
-    backgroundColor: '#0A0A0A',
-    borderRadius: 12,
-    overflow: 'hidden',
-    alignItems: 'center',
-  },
-  exerciseGifImage: {
-    width: '100%',
-    height: 160,
-  },
-  exerciseWatchVideoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: '#1C1C1E',
-    borderWidth: 1,
-    borderColor: '#FF0000',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  exerciseWatchVideoText: {
-    color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
+    color: '#FFA726',
+    lineHeight: 20,
   },
-  markCompleteButton: {
+  exerciseActions: {
+    padding: 20,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#2C2C2E',
+  },
+  navigationButtons: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#2C2C2E',
-    borderWidth: 2,
-    borderColor: '#66BB6A',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+
+  // Notes Step
+  notesInput: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
     borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    marginTop: 4,
-  },
-  markCompleteButtonActive: {
-    backgroundColor: '#66BB6A',
-  },
-  markCompleteText: {
+    padding: 16,
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    marginBottom: 24,
+    minHeight: 150,
+    textAlignVertical: 'top',
   },
-  markCompleteTextActive: {
-    color: '#000000',
-  },
-  exerciseLoadingMedia: {
+  notesActions: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
+  },
+
+  // Complete Step
+  completeIconContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+    marginBottom: 24,
+  },
+  completeTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
     marginBottom: 8,
   },
-  exerciseLoadingMediaText: {
+  completeSubtitle: {
+    fontSize: 18,
     color: '#8E8E93',
-    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  completeSummary: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    padding: 20,
+  },
+  completeSummaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  completeSummaryText: {
+    fontSize: 16,
+    color: '#FFFFFF',
   },
 });

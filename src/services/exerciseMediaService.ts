@@ -254,7 +254,8 @@ export const searchYouTubeVideo = async (
   const searchQuery = `${exerciseName} physical therapy exercise tutorial`;
 
   // Try with duration filter first, fall back to basic search if that fails
-  // Note: videoEmbeddable filter is unreliable, so we handle embed errors in the UI instead
+  // Note: videoEmbeddable filter helps reduce Error 153, but isn't 100% reliable
+  // We still handle embed errors gracefully in the UI as a fallback
   const searchConfigs = [
     {
       name: 'with-duration',
@@ -264,6 +265,7 @@ export const searchYouTubeVideo = async (
         type: 'video',
         maxResults: '1',
         videoDuration: 'short', // Prefer short videos (< 4 min)
+        videoEmbeddable: 'true', // Filter for embeddable videos to reduce Error 153
         key: YOUTUBE_API_KEY,
       },
     },
@@ -274,6 +276,7 @@ export const searchYouTubeVideo = async (
         q: searchQuery,
         type: 'video',
         maxResults: '1',
+        videoEmbeddable: 'true', // Filter for embeddable videos to reduce Error 153
         key: YOUTUBE_API_KEY,
       },
     },

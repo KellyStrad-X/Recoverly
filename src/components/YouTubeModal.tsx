@@ -18,7 +18,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 interface Props {
   visible: boolean;
   videoId: string;
-  videoTitle: string;
+  videoTitle?: string;
   onClose: () => void;
 }
 
@@ -26,7 +26,8 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
   const [embedError, setEmbedError] = useState(false);
 
   // Decode HTML entities in title (e.g., &#39; -> ')
-  const decodeHTMLEntities = (text: string) => {
+  const decodeHTMLEntities = (text: string | undefined) => {
+    if (!text) return 'Exercise Tutorial';
     return text
       .replace(/&#39;/g, "'")
       .replace(/&quot;/g, '"')

@@ -67,8 +67,6 @@ const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours per YouTube ToS
  * Returns exercise object with id and name
  */
 const findExerciseByName = (exerciseName: string): { id: string; name: string } | null => {
-  console.log('🔍 Looking up exercise in database:', exerciseName);
-
   // Exact match (case-insensitive)
   const match = exerciseDatabase.find(
     ex => ex.name.toLowerCase() === exerciseName.toLowerCase()
@@ -76,12 +74,8 @@ const findExerciseByName = (exerciseName: string): { id: string; name: string } 
 
   if (!match) {
     console.error('❌ Exercise not found in database:', exerciseName);
-    console.error('   This should not happen if AI is using the approved list!');
-    console.error('   AI may have hallucinated an exercise name.');
     return null;
   }
-
-  console.log(`✅ Found exact match: "${match.name}" (ID: ${match.id})`);
 
   return {
     id: match.id,
@@ -121,7 +115,6 @@ export const fetchExerciseGif = async (exerciseId: string): Promise<string | nul
 
   try {
     const url = `${EXERCISEDB_BASE_URL}/image?exerciseId=${exerciseId}&resolution=1080`;
-    console.log('🎬 Fetching GIF from:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -141,10 +134,7 @@ export const fetchExerciseGif = async (exerciseId: string): Promise<string | nul
     const base64 = await blobToBase64(blob);
 
     // Return as data URI
-    const dataUri = `data:image/gif;base64,${base64}`;
-    console.log(`✅ GIF fetched successfully (${(base64.length / 1024).toFixed(1)} KB)`);
-
-    return dataUri;
+    return `data:image/gif;base64,${base64}`;
   } catch (error) {
     console.error('❌ Error fetching GIF:', error);
     return null;
@@ -157,7 +147,6 @@ export const fetchExerciseGif = async (exerciseId: string): Promise<string | nul
  * Returns the GIF data URI if found
  */
 export const searchExerciseDBByName = async (exerciseName: string): Promise<string | null> => {
-  console.log('🔍 Searching ExerciseDB for:', exerciseName);
 
   // Find exercise in database
   const exercise = findExerciseByName(exerciseName);
@@ -191,11 +180,8 @@ const getCachedYouTubeVideo = async (
 
     // Check if cache is expired
     if (now > expiresAt) {
-      console.log(`Cached video expired for exercise: ${exerciseId}`);
       return null;
     }
-
-    console.log(`✅ Using cached video for: ${cached.exerciseName}`);
     return {
       videoId: cached.videoId,
       title: cached.videoTitle,
@@ -319,7 +305,6 @@ export const searchYouTubeVideo = async (
 
       if (data.items && data.items.length > 0) {
         const firstResult = data.items[0];
-        console.log(`✅ YouTube success with ${config.name} config`);
         return {
           videoId: firstResult.id.videoId,
           title: firstResult.snippet.title,
@@ -353,16 +338,11 @@ export const fetchExerciseMedia = async (
   exerciseId: string,
   exerciseName: string
 ): Promise<ExerciseMedia> => {
-  console.log(`\n🎬 ========== FETCHING MEDIA ==========`);
-  console.log(`📝 Exercise: ${exerciseName} (ID: ${exerciseId})`);
-
   const media: ExerciseMedia = {
     exerciseId,
     exerciseName,
     lastFetched: new Date(),
   };
-
-  console.log('🚀 Starting parallel fetch (GIF + YouTube)...');
 
   // Fetch both in parallel for speed
   const [gifUrl, youtubeResult] = await Promise.all([
@@ -378,7 +358,6 @@ export const fetchExerciseMedia = async (
         const cachedVideo = await getCachedYouTubeVideo(exerciseId);
 
         if (cachedVideo) {
-          console.log(`✅ Using cached YouTube video for: ${exerciseName}`);
           return cachedVideo;
         }
 
@@ -403,12 +382,8 @@ export const fetchExerciseMedia = async (
   ]);
 
   // Populate media object
-  console.log('\n📊 ========== RESULTS ==========');
   if (gifUrl) {
     media.gifUrl = gifUrl;
-    console.log(`✅ GIF: Found (${gifUrl.substring(0, 50)}...)`);
-  } else {
-    console.log(`❌ GIF: Not found`);
   }
 
   if (youtubeResult) {
@@ -416,9 +391,6 @@ export const fetchExerciseMedia = async (
     media.youtubeVideoTitle = youtubeResult.title;
     // Generate thumbnail URL
     media.youtubeThumbnail = `https://img.youtube.com/vi/${youtubeResult.videoId}/hqdefault.jpg`;
-    console.log(`✅ YouTube: Found (${youtubeResult.videoId})`);
-  } else {
-    console.log(`❌ YouTube: Not found`);
   }
 
   // Set type based on what we found
@@ -432,7 +404,6 @@ export const fetchExerciseMedia = async (
     media.type = 'none';
   }
 
-  console.log(`========== END FETCH ==========\n`);
   return media;
 };
 

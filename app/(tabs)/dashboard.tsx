@@ -733,9 +733,9 @@ export default function DashboardScreen() {
                         (index + 1) * scrollInterval,
                       ];
 
-                      const dotWidth = scrollX.interpolate({
+                      const scale = scrollX.interpolate({
                         inputRange,
-                        outputRange: [6, 20, 6],
+                        outputRange: [1, 3.33, 1], // 6px to 20px = 3.33x scale
                         extrapolate: 'clamp',
                       });
 
@@ -751,8 +751,8 @@ export default function DashboardScreen() {
                           style={[
                             styles.paginationDot,
                             {
-                              width: dotWidth,
                               opacity,
+                              transform: [{ scaleX: scale }],
                             },
                           ]}
                         />
@@ -1284,11 +1284,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 4,
     gap: 6,
-    marginBottom: 4,
+    marginBottom: 0,
   },
   paginationDot: {
+    width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: '#66BB6A',

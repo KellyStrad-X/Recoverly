@@ -93,7 +93,7 @@ export default function DashboardTracking({
         {/* Average Pain Widget */}
         <View style={[styles.widget, styles.wideWidget]}>
           <View style={styles.widgetHeader}>
-            <MaterialCommunityIcons name="heart-pulse" size={20} color="#8E8E93" />
+            <MaterialCommunityIcons name="heart-pulse" size={16} color="#8E8E93" />
             <Text style={styles.widgetLabel}>Avg Pain</Text>
           </View>
           <View style={styles.painContent}>
@@ -108,7 +108,7 @@ export default function DashboardTracking({
         {/* Active Plans Widget */}
         <View style={styles.widget}>
           <View style={styles.widgetHeader}>
-            <MaterialCommunityIcons name="clipboard-pulse" size={18} color="#8E8E93" />
+            <MaterialCommunityIcons name="clipboard-pulse" size={14} color="#8E8E93" />
             <Text style={styles.widgetLabel}>Active</Text>
           </View>
           <View style={styles.circularProgressContainer}>
@@ -122,7 +122,7 @@ export default function DashboardTracking({
         {/* Completed Plans Widget */}
         <View style={styles.widget}>
           <View style={styles.widgetHeader}>
-            <MaterialCommunityIcons name="check-circle" size={18} color="#8E8E93" />
+            <MaterialCommunityIcons name="check-circle" size={14} color="#8E8E93" />
             <Text style={styles.widgetLabel}>Done</Text>
           </View>
           <View style={styles.circularProgressContainer}>
@@ -137,7 +137,7 @@ export default function DashboardTracking({
       {/* Calendar Section */}
       <View style={styles.calendarSection}>
         <View style={styles.calendarHeader}>
-          <MaterialCommunityIcons name="calendar-month" size={20} color="#FFFFFF" />
+          <MaterialCommunityIcons name="calendar-month" size={18} color="#FFFFFF" />
           <Text style={styles.calendarTitle}>30-Day Activity</Text>
         </View>
 
@@ -183,33 +183,34 @@ export default function DashboardTracking({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
-    marginTop: 8,
+    marginTop: 4,
+    marginBottom: 24,
   },
   widgetsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
+    gap: 10,
+    marginBottom: 16,
   },
   widget: {
     flex: 1,
     backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
     borderColor: '#2C2C2E',
   },
   wideWidget: {
-    flex: 1.5,
+    flex: 1.4,
   },
   widgetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 6,
+    marginBottom: 8,
+    gap: 4,
   },
   widgetLabel: {
     color: '#8E8E93',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -217,31 +218,31 @@ const styles = StyleSheet.create({
   painContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   painEmoji: {
-    fontSize: 42,
+    fontSize: 32,
   },
   painValue: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
   painLabel: {
     color: '#66BB6A',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     marginTop: 2,
   },
   circularProgressContainer: {
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   circularProgress: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 3,
     borderColor: '#66BB6A',
     backgroundColor: '#0A0A0A',
@@ -253,37 +254,37 @@ const styles = StyleSheet.create({
   },
   circularProgressNumber: {
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
   },
   circularProgressLabel: {
     color: '#8E8E93',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
   calendarSection: {
     backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#2C2C2E',
   },
   calendarHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
+    gap: 6,
+    marginBottom: 12,
   },
   calendarTitle: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 16,
+    gap: 5,
+    marginBottom: 12,
   },
   calendarDay: {
     alignItems: 'center',
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingTop: 12,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#2C2C2E',
   },

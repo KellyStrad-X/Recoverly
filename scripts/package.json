@@ -1,0 +1,18 @@
+{
+  "name": "recoverly-youtube-research",
+  "version": "1.0.0",
+  "description": "Automated YouTube video research for Recoverly exercises",
+  "main": "youtube-research.js",
+  "scripts": {
+    "research": "node youtube-research.js",
+    "research:sample": "node youtube-research.js --sample 10 --verbose",
+    "upload": "node youtube-upload-to-firestore.js",
+    "upload:dry": "node youtube-upload-to-firestore.js --dry-run"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "firebase-admin": "^11.11.1"
+  },
+  "author": "Recoverly Team",
+  "private": true
+}

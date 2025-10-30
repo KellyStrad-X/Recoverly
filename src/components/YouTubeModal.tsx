@@ -39,8 +39,9 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
   const decodedTitle = decodeHTMLEntities(videoTitle);
 
   // YouTube embed URL with additional parameters to improve compatibility
-  // Using nocookie domain and additional embed parameters
-  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&modestbranding=1&rel=0&fs=1&playsinline=1`;
+  // Using regular youtube.com for better iOS WebView compatibility
+  // origin parameter helps prevent Error 153 on iOS
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&modestbranding=1&rel=0&fs=1&playsinline=1&origin=https://recoverly.app`;
 
   // Handle opening video in YouTube app
   const openInYouTube = async () => {
@@ -115,6 +116,7 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
               <WebView
                 source={{ uri: embedUrl }}
                 allowsFullscreenVideo
+                allowsInlineMediaPlayback={true}
                 mediaPlaybackRequiresUserAction={false}
                 style={styles.webview}
                 javaScriptEnabled={true}

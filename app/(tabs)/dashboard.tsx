@@ -1236,7 +1236,7 @@ const styles = StyleSheet.create({
   // Horizontal Carousel Styles
   carouselContainer: {
     height: CARD_HEIGHT + 24,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   carouselCardWrapper: {
     // marginRight is now handled dynamically in renderPlanCard

@@ -11,7 +11,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import type { Condition, RehabPlan, SessionLog, Message } from '@/types/plan';
+import type { Condition, RehabPlan, SessionLog, Message, Exercise } from '@/types/plan';
 
 /**
  * Create a new condition and associated rehab plan in Firestore
@@ -228,5 +228,65 @@ export const createSessionLog = async (
   } catch (error) {
     console.error('Error creating session log:', error);
     throw new Error('Failed to log session');
+  }
+};
+
+/**
+ * Get a plan by ID
+ */
+export const getPlanById = async (planId: string): Promise<RehabPlan | null> => {
+  try {
+    const planRef = doc(db, 'rehabPlans', planId);
+    const planSnap = await getDoc(planRef);
+
+    if (planSnap.exists()) {
+      return { id: planSnap.id, ...planSnap.data() } as RehabPlan;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching plan:', error);
+    throw new Error('Failed to fetch plan');
+  }
+};
+
+/**
+ * Get a condition by ID
+ */
+export const getConditionById = async (conditionId: string): Promise<Condition | null> => {
+  try {
+    const conditionRef = doc(db, 'conditions', conditionId);
+    const conditionSnap = await getDoc(conditionRef);
+
+    if (conditionSnap.exists()) {
+      return { id: conditionSnap.id, ...conditionSnap.data() } as Condition;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching condition:', error);
+    throw new Error('Failed to fetch condition');
+  }
+};
+
+/**
+ * Update a plan (for refinements)
+ */
+export const updatePlan = async (
+  planId: string,
+  updates: Partial<RehabPlan>
+): Promise<void> => {
+  try {
+    const planRef = doc(db, 'rehabPlans', planId);
+
+    // Convert dates to Timestamps if needed
+    const processedUpdates: any = { ...updates };
+    if (updates.lastModified && !(updates.lastModified instanceof Timestamp)) {
+      processedUpdates.lastModified = Timestamp.fromDate(new Date(updates.lastModified as any));
+    }
+
+    await updateDoc(planRef, processedUpdates);
+    console.log('Updated plan:', planId);
+  } catch (error) {
+    console.error('Error updating plan:', error);
+    throw new Error('Failed to update plan');
   }
 };

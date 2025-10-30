@@ -480,7 +480,10 @@ export default function DashboardScreen() {
       >
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => router.push(`/plan/${item.id}`)}
+          onPress={() => router.push({
+            pathname: '/(tabs)/plan/[id]',
+            params: { id: item.id }
+          })}
           style={styles.carouselCard}
         >
           <View style={styles.carouselCardContent}>

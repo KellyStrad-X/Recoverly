@@ -9,6 +9,11 @@ export interface Exercise {
   safetyNotes: string;
   order: number;
 
+  // Refinement tracking
+  wasReplaced?: boolean;
+  replacementReason?: string;
+  originalExercise?: string;
+
   // Optional visual aids (for later)
   exerciseDbId?: string;
   exerciseDbGifUrl?: string;
@@ -19,6 +24,10 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date | Timestamp;
+  quickReplies?: string[];
+  exerciseOptions?: Exercise[];
+  exerciseAlternatives?: Exercise[];
+  protocol?: any; // For protocol preview messages
 }
 
 export interface Condition {
@@ -43,6 +52,13 @@ export interface Condition {
   resolvedAt?: Timestamp;
 }
 
+export interface ModificationHistory {
+  date: Date | Timestamp;
+  oldExercise: string;
+  newExercise: string;
+  reason: string;
+}
+
 export interface RehabPlan {
   id: string;
   conditionId: string;
@@ -61,6 +77,11 @@ export interface RehabPlan {
   sessionsCompleted: number;
   startDate: Timestamp;
   targetDurationWeeks: number;     // 2 weeks typical
+
+  // Refinement tracking
+  lastModified?: Date | Timestamp;
+  modificationHistory?: ModificationHistory[];
+  refinementConversation?: Message[];
 
   // Safety notes
   safetyNotes: string[];

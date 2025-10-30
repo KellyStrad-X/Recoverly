@@ -332,15 +332,17 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
 
             {/* Visual Aid - Inline YouTube Player */}
             {media && media.youtubeVideoId && (
-              <View style={styles.exerciseMediaContainer}>
-                <YoutubePlayer
-                  height={195}
-                  videoId={media.youtubeVideoId}
-                  play={false}
-                  onError={(error) => {
-                    console.warn('YouTube Player error:', error);
-                  }}
-                />
+              <>
+                <View style={styles.exerciseMediaContainer}>
+                  <YoutubePlayer
+                    height={195}
+                    videoId={media.youtubeVideoId}
+                    play={false}
+                    onError={(error) => {
+                      console.warn('YouTube Player error:', error);
+                    }}
+                  />
+                </View>
 
                 {/* Optional: Fullscreen button */}
                 <TouchableOpacity
@@ -356,7 +358,7 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
                   <MaterialCommunityIcons name="fullscreen" size={20} color="#FFFFFF" />
                   <Text style={styles.fullscreenButtonText}>View Fullscreen</Text>
                 </TouchableOpacity>
-              </View>
+              </>
             )}
 
             {/* Loading indicator for media */}
@@ -849,7 +851,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#3A3A3C',
   },
   exerciseMediaContainer: {
-    marginBottom: 24,
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#000000',
@@ -864,6 +865,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 6,
     marginTop: 12,
+    marginBottom: 24,
   },
   fullscreenButtonText: {
     color: '#FFFFFF',

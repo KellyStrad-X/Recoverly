@@ -335,7 +335,7 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
               <>
                 <View style={styles.exerciseMediaContainer}>
                   <YoutubePlayer
-                    height={195}
+                    height={185}
                     videoId={media.youtubeVideoId}
                     play={false}
                     onError={(error) => {

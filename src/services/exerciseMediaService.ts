@@ -42,9 +42,11 @@ const YOUTUBE_BASE_URL = 'https://www.googleapis.com/youtube/v3';
 export interface ExerciseMedia {
   exerciseId: string;
   exerciseName: string;
+  type?: 'gif' | 'youtube' | 'both' | 'none';
   gifUrl?: string;
   youtubeVideoId?: string;
   youtubeVideoTitle?: string;
+  youtubeThumbnail?: string;
   lastFetched: Date;
 }
 
@@ -412,9 +414,22 @@ export const fetchExerciseMedia = async (
   if (youtubeResult) {
     media.youtubeVideoId = youtubeResult.videoId;
     media.youtubeVideoTitle = youtubeResult.title;
+    // Generate thumbnail URL
+    media.youtubeThumbnail = `https://img.youtube.com/vi/${youtubeResult.videoId}/hqdefault.jpg`;
     console.log(`✅ YouTube: Found (${youtubeResult.videoId})`);
   } else {
     console.log(`❌ YouTube: Not found`);
+  }
+
+  // Set type based on what we found
+  if (gifUrl && youtubeResult) {
+    media.type = 'both';
+  } else if (gifUrl) {
+    media.type = 'gif';
+  } else if (youtubeResult) {
+    media.type = 'youtube';
+  } else {
+    media.type = 'none';
   }
 
   console.log(`========== END FETCH ==========\n`);

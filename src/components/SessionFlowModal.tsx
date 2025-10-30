@@ -164,18 +164,24 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
 
     setSaving(true);
     try {
-      // Save session log
-      await createSessionLog({
+      // Save session log - prepare data without undefined values
+      const sessionData: any = {
         userId: user.uid,
         planId: plan.id,
         conditionId: plan.conditionId,
         prePainScore,
         postPainScore,
         exercisesCompleted: Array.from(completedExercises),
-        notes: notes.trim() || undefined,
         sessionNumber: plan.sessionsCompleted + 1,
         weekNumber: Math.floor(plan.currentDay / 7) + 1,
-      });
+      };
+
+      // Only add notes if they exist
+      if (notes && notes.trim()) {
+        sessionData.notes = notes.trim();
+      }
+
+      await createSessionLog(sessionData);
 
       // Update plan progress
       await updatePlanProgress(plan.id, {
@@ -324,17 +330,21 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
             </View>
 
             {/* Visual Aid */}
-            {media && (
+            {media && (media.gifUrl || media.youtubeVideoId) && (
               <View style={styles.exerciseMediaContainer}>
-                {media.type === 'gif' && media.gifUrl ? (
+                {/* Show GIF if available */}
+                {media.gifUrl && (
                   <Image
                     source={{ uri: media.gifUrl }}
                     style={styles.exerciseGif}
                     resizeMode="contain"
                   />
-                ) : media.type === 'youtube' && media.youtubeVideoId ? (
+                )}
+
+                {/* Show YouTube button if available */}
+                {media.youtubeVideoId && (
                   <TouchableOpacity
-                    style={styles.youtubeThumbnail}
+                    style={[styles.youtubeButton, media.gifUrl && { marginTop: 12 }]}
                     onPress={() => {
                       setSelectedVideo({
                         videoId: media.youtubeVideoId!,
@@ -343,16 +353,10 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
                       setYoutubeModalVisible(true);
                     }}
                   >
-                    <Image
-                      source={{ uri: media.youtubeThumbnail }}
-                      style={styles.youtubeThumbnailImage}
-                      resizeMode="cover"
-                    />
-                    <View style={styles.youtubePlayButton}>
-                      <MaterialCommunityIcons name="play" size={32} color="#FFFFFF" />
-                    </View>
+                    <MaterialCommunityIcons name="youtube" size={24} color="#FF0000" />
+                    <Text style={styles.youtubeButtonText}>Watch Tutorial Video</Text>
                   </TouchableOpacity>
-                ) : null}
+                )}
               </View>
             )}
 
@@ -492,12 +496,12 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
 
       <TextInput
         style={styles.notesInput}
-        placeholder="Any notes about this session? How did it feel? Any exercises particularly helpful or difficult?"
+        placeholder="Any notes about this session?"
         placeholderTextColor="#8E8E93"
         value={notes}
         onChangeText={setNotes}
         multiline
-        numberOfLines={8}
+        numberOfLines={4}
         textAlignVertical="top"
         keyboardAppearance="dark" // This makes the keyboard dark on iOS
         returnKeyType="done"
@@ -846,28 +850,22 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     backgroundColor: '#2C2C2E',
+    borderRadius: 12,
   },
-  youtubeThumbnail: {
-    width: '100%',
-    height: 200,
-    position: 'relative',
-  },
-  youtubeThumbnailImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#2C2C2E',
-  },
-  youtubePlayButton: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -25 }, { translateY: -25 }],
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
+  youtubeButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  youtubeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
   exerciseInstructionsContainer: {
     marginBottom: 20,
@@ -918,14 +916,13 @@ const styles = StyleSheet.create({
 
   // Notes Step
   notesInput: {
-    flex: 1,
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
     padding: 16,
     color: '#FFFFFF',
     fontSize: 16,
     marginBottom: 24,
-    minHeight: 150,
+    height: 120,
     textAlignVertical: 'top',
   },
   notesActions: {

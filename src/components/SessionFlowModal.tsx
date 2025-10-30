@@ -67,7 +67,7 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
 
     setLoadingMediaIds(prev => new Set([...prev, exerciseId]));
     try {
-      const media = await fetchExerciseMedia(exerciseName);
+      const media = await fetchExerciseMedia(exerciseId, exerciseName);
       if (media) {
         setExerciseMedia(prev => new Map(prev).set(exerciseId, media));
       }

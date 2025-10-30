@@ -214,6 +214,17 @@ const cacheYouTubeVideo = async (
   videoTitle: string
 ): Promise<void> => {
   try {
+    // Validate inputs to prevent Firebase errors
+    if (!exerciseId || !exerciseName || !videoId || !videoTitle) {
+      console.warn('Skipping cache - missing required fields:', {
+        exerciseId: !!exerciseId,
+        exerciseName: !!exerciseName,
+        videoId: !!videoId,
+        videoTitle: !!videoTitle
+      });
+      return;
+    }
+
     const now = new Date();
     const expiresAt = new Date(now.getTime() + CACHE_DURATION_MS);
 

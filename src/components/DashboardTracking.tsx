@@ -183,8 +183,8 @@ export default function DashboardTracking({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
-    marginTop: 4,
-    marginBottom: 24,
+    marginTop: 0,
+    marginBottom: 32,
   },
   widgetsRow: {
     flexDirection: 'row',

@@ -44,17 +44,27 @@ interface CachedYouTubeVideo {
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours per YouTube ToS
 
 /**
+ * Generate cache key from exercise name
+ * Normalizes name to ensure consistent lookups
+ */
+const getCacheKey = (exerciseName: string): string => {
+  return exerciseName.toLowerCase().trim().replace(/\s+/g, '_');
+};
+
+/**
  * Get cached YouTube video from Firestore
+ * Uses exercise name (normalized) as cache key for uniqueness
  */
 const getCachedYouTubeVideo = async (
-  exerciseId: string
+  exerciseName: string
 ): Promise<{ videoId: string; title: string } | null> => {
   try {
-    const cacheRef = doc(db, 'exerciseVideoCache', exerciseId);
+    const cacheKey = getCacheKey(exerciseName);
+    const cacheRef = doc(db, 'exerciseVideoCache', cacheKey);
     const cacheDoc = await getDoc(cacheRef);
 
     if (!cacheDoc.exists()) {
-      console.log(`No cached video for exercise: ${exerciseId}`);
+      console.log(`No cached video for exercise: ${exerciseName}`);
       return null;
     }
 
@@ -64,8 +74,11 @@ const getCachedYouTubeVideo = async (
 
     // Check if cache is expired
     if (now > expiresAt) {
+      console.log(`Cache expired for: ${exerciseName}`);
       return null;
     }
+
+    console.log(`✅ Cache hit for: ${exerciseName} (${cached.videoId})`);
     return {
       videoId: cached.videoId,
       title: cached.videoTitle,
@@ -78,18 +91,17 @@ const getCachedYouTubeVideo = async (
 
 /**
  * Cache YouTube video in Firestore (24 hour TTL per YouTube ToS)
+ * Uses exercise name (normalized) as cache key to ensure each exercise has unique video
  */
 const cacheYouTubeVideo = async (
-  exerciseId: string,
   exerciseName: string,
   videoId: string,
   videoTitle: string
 ): Promise<void> => {
   try {
     // Validate inputs to prevent Firebase errors
-    if (!exerciseId || !exerciseName || !videoId || !videoTitle) {
+    if (!exerciseName || !videoId || !videoTitle) {
       console.warn('Skipping cache - missing required fields:', {
-        exerciseId: !!exerciseId,
         exerciseName: !!exerciseName,
         videoId: !!videoId,
         videoTitle: !!videoTitle
@@ -99,9 +111,10 @@ const cacheYouTubeVideo = async (
 
     const now = new Date();
     const expiresAt = new Date(now.getTime() + CACHE_DURATION_MS);
+    const cacheKey = getCacheKey(exerciseName);
 
     const cacheData: CachedYouTubeVideo = {
-      exerciseId,
+      exerciseId: cacheKey, // Use normalized name as ID
       exerciseName,
       videoId,
       videoTitle,
@@ -109,10 +122,10 @@ const cacheYouTubeVideo = async (
       expiresAt: Timestamp.fromDate(expiresAt),
     };
 
-    const cacheRef = doc(db, 'exerciseVideoCache', exerciseId);
+    const cacheRef = doc(db, 'exerciseVideoCache', cacheKey);
     await setDoc(cacheRef, cacheData);
 
-    console.log(`💾 Cached video for: ${exerciseName} (expires in 24h)`);
+    console.log(`💾 Cached video for: ${exerciseName} -> ${videoId} (expires in 24h)`);
   } catch (error) {
     console.error('Error caching video:', error);
     // Don't throw - caching failure shouldn't block the user
@@ -120,7 +133,7 @@ const cacheYouTubeVideo = async (
 };
 
 /**
- * Search YouTube for exercise tutorial video
+ * Search YouTube for exercise tutorial video - Prioritizing Shorts
  * Returns video ID and title if found
  */
 export const searchYouTubeVideo = async (
@@ -134,33 +147,44 @@ export const searchYouTubeVideo = async (
   // Debug: Verify API key is loaded (show only first 10 chars for security)
   console.log('YouTube API Key status:', YOUTUBE_API_KEY ? `Configured (${YOUTUBE_API_KEY.substring(0, 10)}...)` : 'Missing');
 
-  // Build search query - add "physical therapy" for better results
-  const searchQuery = `${exerciseName} physical therapy exercise tutorial`;
-
-  // Try with duration filter first, fall back to basic search if that fails
-  // Note: videoEmbeddable filter helps reduce Error 153, but isn't 100% reliable
-  // We still handle embed errors gracefully in the UI as a fallback
+  // Try multiple search strategies in order of preference
+  // 1. YouTube Shorts (vertical format, < 60 sec, perfect for mobile)
+  // 2. Short videos (< 4 min)
+  // 3. Any embeddable video (fallback)
   const searchConfigs = [
     {
-      name: 'with-duration',
+      name: 'shorts-priority',
       params: {
         part: 'snippet',
-        q: searchQuery,
+        q: `${exerciseName} shorts physical therapy exercise`,
         type: 'video',
         maxResults: '1',
-        videoDuration: 'short', // Prefer short videos (< 4 min)
-        videoEmbeddable: 'true', // Filter for embeddable videos to reduce Error 153
+        videoDuration: 'short', // < 4 min (includes all Shorts)
+        videoEmbeddable: 'true',
+        videoDefinition: 'high', // Prefer HD
         key: YOUTUBE_API_KEY,
       },
     },
     {
-      name: 'basic',
+      name: 'short-videos',
       params: {
         part: 'snippet',
-        q: searchQuery,
+        q: `${exerciseName} physical therapy exercise tutorial`,
         type: 'video',
         maxResults: '1',
-        videoEmbeddable: 'true', // Filter for embeddable videos to reduce Error 153
+        videoDuration: 'short', // < 4 min
+        videoEmbeddable: 'true',
+        key: YOUTUBE_API_KEY,
+      },
+    },
+    {
+      name: 'fallback',
+      params: {
+        part: 'snippet',
+        q: `${exerciseName} physical therapy exercise`,
+        type: 'video',
+        maxResults: '1',
+        videoEmbeddable: 'true',
         key: YOUTUBE_API_KEY,
       },
     },
@@ -214,8 +238,9 @@ export const searchYouTubeVideo = async (
  * Fetch media for a single exercise - YouTube only
  *
  * STRATEGY:
+ * - Use exercise NAME (not ID) as cache key for uniqueness
  * - Check cache first (24hr TTL)
- * - If cache miss, fetch from YouTube API
+ * - If cache miss, fetch from YouTube API (prioritizing Shorts)
  * - Cache result for future use
  *
  * Component-level caching (caller's responsibility):
@@ -233,8 +258,8 @@ export const fetchExerciseMedia = async (
   };
 
   try {
-    // Check cache first
-    const cachedVideo = await getCachedYouTubeVideo(exerciseId);
+    // Check cache first - using exercise name for uniqueness
+    const cachedVideo = await getCachedYouTubeVideo(exerciseName);
 
     if (cachedVideo) {
       media.youtubeVideoId = cachedVideo.videoId;
@@ -243,12 +268,12 @@ export const fetchExerciseMedia = async (
       return media;
     }
 
-    // Cache miss - fetch from API
+    // Cache miss - fetch from API (prioritizes Shorts for vertical format)
+    console.log(`🔍 Searching YouTube for: ${exerciseName}`);
     const result = await searchYouTubeVideo(exerciseName);
     if (result) {
-      // Cache for future use
+      // Cache for future use (keyed by exercise name)
       await cacheYouTubeVideo(
-        exerciseId,
         exerciseName,
         result.videoId,
         result.title
@@ -257,6 +282,10 @@ export const fetchExerciseMedia = async (
       media.youtubeVideoId = result.videoId;
       media.youtubeVideoTitle = result.title;
       media.youtubeThumbnail = `https://img.youtube.com/vi/${result.videoId}/hqdefault.jpg`;
+
+      console.log(`✅ Found video for ${exerciseName}: ${result.videoId}`);
+    } else {
+      console.warn(`⚠️ No video found for: ${exerciseName}`);
     }
   } catch (error) {
     console.error('Error fetching YouTube video:', error);

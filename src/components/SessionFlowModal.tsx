@@ -330,12 +330,12 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
               </View>
             </View>
 
-            {/* Visual Aid - Inline YouTube Player */}
+            {/* Visual Aid - Inline YouTube Player (optimized for Shorts) */}
             {media && media.youtubeVideoId && (
               <View style={styles.exerciseMediaContainer}>
                 <View style={styles.inlineVideoPlayer}>
                   <YoutubePlayer
-                    height={220}
+                    height={400}
                     videoId={media.youtubeVideoId}
                     play={false}
                     onError={(error) => {

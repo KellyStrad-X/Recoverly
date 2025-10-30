@@ -222,14 +222,14 @@ export default function DashboardTracking({
       <View style={styles.calendarSection} {...panResponder.panHandlers}>
         <View style={styles.calendarHeader}>
           <TouchableOpacity onPress={() => setMonthOffset(monthOffset - 1)} style={styles.navButton}>
-            <MaterialCommunityIcons name="chevron-left" size={24} color="#66BB6A" />
+            <MaterialCommunityIcons name="chevron-left" size={20} color="#66BB6A" />
           </TouchableOpacity>
           <View style={styles.calendarTitleContainer}>
-            <MaterialCommunityIcons name="calendar-month" size={18} color="#FFFFFF" />
+            <MaterialCommunityIcons name="calendar-month" size={16} color="#FFFFFF" />
             <Text style={styles.calendarTitle}>{getMonthYearString()}</Text>
           </View>
           <TouchableOpacity onPress={() => setMonthOffset(monthOffset + 1)} style={styles.navButton}>
-            <MaterialCommunityIcons name="chevron-right" size={24} color="#66BB6A" />
+            <MaterialCommunityIcons name="chevron-right" size={20} color="#66BB6A" />
           </TouchableOpacity>
         </View>
 
@@ -273,18 +273,18 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
     marginTop: 0,
-    marginBottom: 32,
+    marginBottom: 80,
   },
   widgetsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   widget: {
     flex: 1,
     backgroundColor: '#1C1C1E',
     borderRadius: 10,
-    padding: 10,
+    padding: 8,
     borderWidth: 1,
     borderColor: '#2C2C2E',
   },
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   widgetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
     gap: 3,
   },
   widgetLabel: {
@@ -307,31 +307,31 @@ const styles = StyleSheet.create({
   painContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   painEmoji: {
-    fontSize: 28,
+    fontSize: 24,
   },
   painValue: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
   painLabel: {
     color: '#66BB6A',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     marginTop: 1,
   },
   circularProgressContainer: {
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   circularProgress: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 2.5,
     borderColor: '#66BB6A',
     backgroundColor: '#0A0A0A',
@@ -343,18 +343,18 @@ const styles = StyleSheet.create({
   },
   circularProgressNumber: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
   },
   circularProgressLabel: {
     color: '#8E8E93',
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: '600',
   },
   calendarSection: {
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
-    padding: 18,
+    padding: 14,
     borderWidth: 1,
     borderColor: '#2C2C2E',
   },
@@ -362,47 +362,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 10,
   },
   calendarTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
   },
   calendarTitle: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
   },
   navButton: {
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 16,
+    borderRadius: 14,
     backgroundColor: '#2C2C2E',
   },
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7,
-    marginBottom: 14,
+    gap: 6,
+    marginBottom: 10,
   },
   calendarDay: {
     alignItems: 'center',
   },
   calendarDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#2C2C2E',
   },
   emptyDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#3A3A3C',
   },
   todayBorder: {
@@ -412,23 +412,23 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingTop: 10,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#2C2C2E',
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   legendText: {
     color: '#8E8E93',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
   },
 });

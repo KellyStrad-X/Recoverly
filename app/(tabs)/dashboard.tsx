@@ -36,6 +36,7 @@ const SIDE_PADDING = 24;
 const CARD_SPACING = 16;
 const CARD_WIDTH = SCREEN_WIDTH - (SIDE_PADDING * 2);
 const CARD_HEIGHT = 140;
+const SNAP_INTERVAL = CARD_WIDTH + CARD_SPACING;
 
 interface Message {
   id: string;
@@ -460,11 +461,10 @@ export default function DashboardScreen() {
 
   const renderPlanCard = ({ item, index }: { item: RehabPlan; index: number }) => {
     // Calculate opacity based on scroll position for fade effect (horizontal)
-    const scrollInterval = CARD_WIDTH + CARD_SPACING;
     const inputRange = [
-      (index - 1) * scrollInterval,
-      index * scrollInterval,
-      (index + 1) * scrollInterval,
+      (index - 1) * SNAP_INTERVAL,
+      index * SNAP_INTERVAL,
+      (index + 1) * SNAP_INTERVAL,
     ];
 
     const opacity = scrollX.interpolate({
@@ -484,9 +484,6 @@ export default function DashboardScreen() {
       ? Math.round((item.sessionsCompleted / (item.sessionsCompleted + 1)) * 100)
       : 0;
 
-    // Don't add marginRight to the last card
-    const isLastCard = index === activePlans.length - 1;
-
     return (
       <Animated.View
         style={[
@@ -494,7 +491,6 @@ export default function DashboardScreen() {
           {
             opacity,
             transform: [{ scale }],
-            marginRight: isLastCard ? 0 : CARD_SPACING,
           },
         ]}
       >
@@ -708,11 +704,12 @@ export default function DashboardScreen() {
                     keyExtractor={(item) => item.id}
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}
-                    snapToInterval={CARD_WIDTH + CARD_SPACING}
+                    snapToInterval={SNAP_INTERVAL}
                     decelerationRate="fast"
-                    snapToAlignment="center"
+                    snapToAlignment="start"
                     contentContainerStyle={{
                       paddingHorizontal: SIDE_PADDING,
+                      gap: CARD_SPACING,
                     }}
                     onScroll={Animated.event(
                       [{ nativeEvent: { contentOffset: { x: scrollX } } }],
@@ -726,16 +723,15 @@ export default function DashboardScreen() {
                 {activePlans.length > 1 && (
                   <View style={styles.paginationContainer}>
                     {activePlans.map((_, index) => {
-                      const scrollInterval = CARD_WIDTH + CARD_SPACING;
                       const inputRange = [
-                        (index - 1) * scrollInterval,
-                        index * scrollInterval,
-                        (index + 1) * scrollInterval,
+                        (index - 1) * SNAP_INTERVAL,
+                        index * SNAP_INTERVAL,
+                        (index + 1) * SNAP_INTERVAL,
                       ];
 
                       const scale = scrollX.interpolate({
                         inputRange,
-                        outputRange: [1, 3.33, 1], // 6px to 20px = 3.33x scale
+                        outputRange: [1, 2, 1], // 6px to 12px = 2x scale
                         extrapolate: 'clamp',
                       });
 
@@ -1274,19 +1270,20 @@ const styles = StyleSheet.create({
   },
   // Horizontal Carousel Styles
   carouselContainer: {
-    height: CARD_HEIGHT + 24,
+    height: CARD_HEIGHT + 16,
     marginBottom: 0,
   },
   carouselCardWrapper: {
-    // marginRight is now handled dynamically in renderPlanCard
+    width: CARD_WIDTH,
   },
   paginationContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 4,
-    gap: 6,
-    marginBottom: 0,
+    paddingVertical: 0,
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 16,
   },
   paginationDot: {
     width: 6,

@@ -38,10 +38,36 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
 
   const decodedTitle = decodeHTMLEntities(videoTitle);
 
-  // YouTube embed URL with additional parameters to improve compatibility
-  // Using regular youtube.com for better iOS WebView compatibility
-  // origin parameter helps prevent Error 153 on iOS
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&modestbranding=1&rel=0&fs=1&playsinline=1&origin=https://recoverly.app`;
+  // YouTube embed HTML for mobile WebView compatibility
+  // Using HTML string approach is more reliable than direct URI for React Native
+  const embedHtml = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+        <style>
+          * { margin: 0; padding: 0; }
+          html, body { height: 100%; width: 100%; background: #000; }
+          .video-container { position: relative; width: 100%; height: 100%; }
+          iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: none;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="video-container">
+          <iframe
+            src="https://www.youtube.com/embed/${videoId}?autoplay=0&playsinline=1&modestbranding=1&rel=0&enablejsapi=1"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </body>
+    </html>
+  `;
 
   // Handle opening video in YouTube app
   const openInYouTube = async () => {
@@ -114,13 +140,15 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
               </View>
             ) : (
               <WebView
-                source={{ uri: embedUrl }}
+                source={{ html: embedHtml }}
                 allowsFullscreenVideo
                 allowsInlineMediaPlayback={true}
                 mediaPlaybackRequiresUserAction={false}
                 style={styles.webview}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
+                scrollEnabled={false}
+                bounces={false}
                 onError={(syntheticEvent) => {
                   const { nativeEvent } = syntheticEvent;
                   console.warn('WebView error:', nativeEvent);

@@ -19,6 +19,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { RehabPlan, Condition, Exercise } from '@/types/plan';
 import { getPlanById, getConditionById, updatePlan } from '@/services/planService';
 import PlanRefinementChat from '@/components/PlanRefinementChat';
+import SessionFlowModal from '@/components/SessionFlowModal';
 
 export default function PlanDetailScreen() {
   const router = useRouter();
@@ -29,6 +30,7 @@ export default function PlanDetailScreen() {
   const [condition, setCondition] = useState<Condition | null>(null);
   const [loading, setLoading] = useState(true);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const [sessionModalVisible, setSessionModalVisible] = useState(false);
 
   // Animation values
   const chatHeight = useRef(new Animated.Value(60)).current; // Collapsed height
@@ -87,10 +89,13 @@ export default function PlanDetailScreen() {
 
   const startSession = () => {
     if (!plan) return;
-    router.push({
-      pathname: '/(session)/start',
-      params: { planId: plan.id, conditionId: plan.conditionId }
-    });
+    setSessionModalVisible(true);
+  };
+
+  const handleSessionComplete = () => {
+    setSessionModalVisible(false);
+    // Reload plan data to show updated progress
+    loadPlanData();
   };
 
   if (loading) {
@@ -272,6 +277,16 @@ export default function PlanDetailScreen() {
           {/* Disclaimer */}
           <Text style={styles.disclaimer}>{plan.disclaimer}</Text>
         </Animated.ScrollView>
+
+        {/* Session Flow Modal */}
+        {plan && (
+          <SessionFlowModal
+            visible={sessionModalVisible}
+            plan={plan}
+            onClose={() => setSessionModalVisible(false)}
+            onComplete={handleSessionComplete}
+          />
+        )}
       </SafeAreaView>
     </KeyboardAvoidingView>
   );

@@ -722,6 +722,45 @@ export default function DashboardScreen() {
                   />
                 </View>
 
+                {/* Pagination Dots */}
+                {activePlans.length > 1 && (
+                  <View style={styles.paginationContainer}>
+                    {activePlans.map((_, index) => {
+                      const scrollInterval = CARD_WIDTH + CARD_SPACING;
+                      const inputRange = [
+                        (index - 1) * scrollInterval,
+                        index * scrollInterval,
+                        (index + 1) * scrollInterval,
+                      ];
+
+                      const dotWidth = scrollX.interpolate({
+                        inputRange,
+                        outputRange: [6, 20, 6],
+                        extrapolate: 'clamp',
+                      });
+
+                      const opacity = scrollX.interpolate({
+                        inputRange,
+                        outputRange: [0.3, 1, 0.3],
+                        extrapolate: 'clamp',
+                      });
+
+                      return (
+                        <Animated.View
+                          key={index}
+                          style={[
+                            styles.paginationDot,
+                            {
+                              width: dotWidth,
+                              opacity,
+                            },
+                          ]}
+                        />
+                      );
+                    })}
+                  </View>
+                )}
+
                 {/* Dashboard Tracking - Widgets & Calendar */}
                 <DashboardTracking
                   averagePain={averagePain}
@@ -1236,10 +1275,23 @@ const styles = StyleSheet.create({
   // Horizontal Carousel Styles
   carouselContainer: {
     height: CARD_HEIGHT + 24,
-    marginBottom: 4,
+    marginBottom: 0,
   },
   carouselCardWrapper: {
     // marginRight is now handled dynamically in renderPlanCard
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+    gap: 6,
+    marginBottom: 4,
+  },
+  paginationDot: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#66BB6A',
   },
   carouselCard: {
     width: CARD_WIDTH,

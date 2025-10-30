@@ -22,6 +22,7 @@ import { createSessionLog, updatePlanProgress } from '@/services/planService';
 import type { RehabPlan, Exercise } from '@/types/plan';
 import { Timestamp } from 'firebase/firestore';
 import YouTubeModal from './YouTubeModal';
+import YoutubePlayer from 'react-native-youtube-iframe';
 import { fetchExerciseMedia, type ExerciseMedia } from '@/services/exerciseMediaService';
 
 type SessionStep = 'prePain' | 'exercises' | 'postPain' | 'notes' | 'complete';
@@ -329,34 +330,42 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
               </View>
             </View>
 
-            {/* Visual Aid */}
-            {media && (media.gifUrl || media.youtubeVideoId) && (
+            {/* Visual Aid - Inline YouTube Player */}
+            {media && media.youtubeVideoId && (
               <View style={styles.exerciseMediaContainer}>
-                {/* Show GIF if available */}
-                {media.gifUrl && (
-                  <Image
-                    source={{ uri: media.gifUrl }}
-                    style={styles.exerciseGif}
-                    resizeMode="contain"
-                  />
-                )}
-
-                {/* Show YouTube button if available */}
-                {media.youtubeVideoId && (
-                  <TouchableOpacity
-                    style={[styles.youtubeButton, media.gifUrl && { marginTop: 12 }]}
-                    onPress={() => {
-                      setSelectedVideo({
-                        videoId: media.youtubeVideoId!,
-                        title: currentExercise.name,
-                      });
-                      setYoutubeModalVisible(true);
+                <View style={styles.inlineVideoPlayer}>
+                  <YoutubePlayer
+                    height={220}
+                    videoId={media.youtubeVideoId}
+                    play={false}
+                    onError={(error) => {
+                      console.warn('YouTube Player error:', error);
                     }}
-                  >
-                    <MaterialCommunityIcons name="youtube" size={24} color="#FF0000" />
-                    <Text style={styles.youtubeButtonText}>Watch Tutorial Video</Text>
-                  </TouchableOpacity>
-                )}
+                  />
+                </View>
+
+                {/* Optional: Fullscreen button */}
+                <TouchableOpacity
+                  style={styles.fullscreenButton}
+                  onPress={() => {
+                    setSelectedVideo({
+                      videoId: media.youtubeVideoId!,
+                      title: currentExercise.name,
+                    });
+                    setYoutubeModalVisible(true);
+                  }}
+                >
+                  <MaterialCommunityIcons name="fullscreen" size={20} color="#FFFFFF" />
+                  <Text style={styles.fullscreenButtonText}>View Fullscreen</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Loading indicator for media */}
+            {loadingMediaIds.has(currentExercise.id) && (
+              <View style={styles.mediaLoadingContainer}>
+                <ActivityIndicator size="small" color="#66BB6A" />
+                <Text style={styles.mediaLoadingText}>Loading tutorial video...</Text>
               </View>
             )}
 
@@ -843,29 +852,39 @@ const styles = StyleSheet.create({
   },
   exerciseMediaContainer: {
     marginBottom: 24,
+  },
+  inlineVideoPlayer: {
+    width: '100%',
     borderRadius: 12,
     overflow: 'hidden',
+    backgroundColor: '#000000',
   },
-  exerciseGif: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-  },
-  youtubeButton: {
+  fullscreenButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#2C2C2E',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
+    gap: 6,
+    marginTop: 12,
+  },
+  fullscreenButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  mediaLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
     gap: 8,
   },
-  youtubeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
+  mediaLoadingText: {
+    color: '#8E8E93',
+    fontSize: 14,
   },
   exerciseInstructionsContainer: {
     marginBottom: 20,

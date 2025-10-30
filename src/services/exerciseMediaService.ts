@@ -1,49 +1,31 @@
 import Constants from 'expo-constants';
 import { db } from '@/config/firebase';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
-import exerciseDatabase from '../../scripts/exercisedb-complete-index.json';
 
 /**
- * Exercise Media Service - Hybrid GIF + YouTube Integration
+ * Exercise Media Service - YouTube Integration
  *
  * STRATEGY:
- * - ExerciseDB GIFs: Primary visual (fetched as base64 data URI)
- * - YouTube Videos: Optional enhancement (button to watch tutorial)
+ * - YouTube Videos: Primary visual aid (embedded inline with tap-to-play)
+ * - Fullscreen modal: Optional for better viewing experience
  *
  * CACHING POLICY:
- * - ExerciseDB: NO persistent caching (per ToS)
- *   - Component-level caching OK (React state during session)
- *   - Prevents redundant API calls on re-expansion
  * - YouTube: Firestore caching ALLOWED (24hr TTL per ToS)
  *   - Consistent video experience across visits
- *
- * QUOTA MANAGEMENT:
- * - Component state prevents re-fetching on collapse/expand
- * - Typical usage: ~1-2 fetches per exercise per session
- * - Ultra plan (200k/month) supports ~5000 active users
- *
- * GIF FETCHING IMPLEMENTATION:
- * - Uses /image endpoint with auth headers
- * - Fetches as blob, converts to base64 for React Native Image component
- * - Format: data:image/gif;base64,{base64_data}
+ *   - Reduces API quota usage
  *
  * EXERCISE MATCHING:
  * - AI provides exact exercise names from curated list
- * - We do exact name lookup (case-insensitive)
- * - No fuzzy matching needed - AI is constrained to approved exercises
+ * - Search includes "physical therapy exercise tutorial" for better results
+ * - Filters for short, embeddable videos to reduce playback errors
  */
 
-const RAPIDAPI_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_RAPIDAPI_KEY || process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
 const YOUTUBE_API_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_YOUTUBE_API_KEY || process.env.EXPO_PUBLIC_YOUTUBE_API_KEY;
-
-const EXERCISEDB_BASE_URL = 'https://exercisedb.p.rapidapi.com';
 const YOUTUBE_BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
 export interface ExerciseMedia {
   exerciseId: string;
   exerciseName: string;
-  type?: 'gif' | 'youtube' | 'both' | 'none';
-  gifUrl?: string;
   youtubeVideoId?: string;
   youtubeVideoTitle?: string;
   youtubeThumbnail?: string;
@@ -60,104 +42,6 @@ interface CachedYouTubeVideo {
 }
 
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours per YouTube ToS
-
-/**
- * Find exercise in database using exact name match
- * AI now uses exact names from our curated list, so no fuzzy matching needed
- * Returns exercise object with id and name
- */
-const findExerciseByName = (exerciseName: string): { id: string; name: string } | null => {
-  // Exact match (case-insensitive)
-  const match = exerciseDatabase.find(
-    ex => ex.name.toLowerCase() === exerciseName.toLowerCase()
-  );
-
-  if (!match) {
-    console.error('❌ Exercise not found in database:', exerciseName);
-    return null;
-  }
-
-  return {
-    id: match.id,
-    name: match.name,
-  };
-};
-
-/**
- * Convert Blob to base64 string using FileReader (React Native compatible)
- */
-const blobToBase64 = (blob: Blob): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        // Remove the data URI prefix to get just the base64 string
-        const base64 = reader.result.split(',')[1];
-        resolve(base64);
-      } else {
-        reject(new Error('FileReader result is not a string'));
-      }
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-};
-
-/**
- * Fetch GIF from ExerciseDB /image endpoint
- * Returns base64 data URI for React Native Image component
- */
-export const fetchExerciseGif = async (exerciseId: string): Promise<string | null> => {
-  if (!RAPIDAPI_KEY) {
-    console.error('❌ RapidAPI key not configured');
-    return null;
-  }
-
-  try {
-    const url = `${EXERCISEDB_BASE_URL}/image?exerciseId=${exerciseId}&resolution=1080`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-RapidAPI-Key': RAPIDAPI_KEY,
-        'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
-      },
-    });
-
-    if (!response.ok) {
-      console.error('❌ Failed to fetch GIF:', response.status, response.statusText);
-      return null;
-    }
-
-    // Fetch as blob, then convert to base64 using FileReader
-    const blob = await response.blob();
-    const base64 = await blobToBase64(blob);
-
-    // Return as data URI
-    return `data:image/gif;base64,${base64}`;
-  } catch (error) {
-    console.error('❌ Error fetching GIF:', error);
-    return null;
-  }
-};
-
-/**
- * Search ExerciseDB for a matching exercise by name
- * Uses fuzzy matching on local database, then fetches GIF
- * Returns the GIF data URI if found
- */
-export const searchExerciseDBByName = async (exerciseName: string): Promise<string | null> => {
-
-  // Find exercise in database
-  const exercise = findExerciseByName(exerciseName);
-
-  if (!exercise) {
-    return null;
-  }
-
-  // Fetch GIF using exercise ID
-  return fetchExerciseGif(exercise.id);
-};
 
 /**
  * Get cached YouTube video from Firestore
@@ -327,15 +211,16 @@ export const searchYouTubeVideo = async (
 };
 
 /**
- * Fetch media for a single exercise - Hybrid approach
+ * Fetch media for a single exercise - YouTube only
+ *
  * STRATEGY:
- * - ExerciseDB GIF: Primary visual (fetch fresh per ToS)
- * - YouTube: Optional enhancement (use cache if available)
+ * - Check cache first (24hr TTL)
+ * - If cache miss, fetch from YouTube API
+ * - Cache result for future use
  *
  * Component-level caching (caller's responsibility):
  * - Store result in React state
  * - Don't re-fetch if already in state
- * - This is ToS compliant (not persistent storage)
  */
 export const fetchExerciseMedia = async (
   exerciseId: string,
@@ -347,78 +232,42 @@ export const fetchExerciseMedia = async (
     lastFetched: new Date(),
   };
 
-  // Fetch both in parallel for speed
-  const [gifUrl, youtubeResult] = await Promise.all([
-    // ExerciseDB GIF - primary visual
-    searchExerciseDBByName(exerciseName).catch((error) => {
-      console.error('❌ Error fetching ExerciseDB GIF:', error);
-      return null;
-    }),
+  try {
+    // Check cache first
+    const cachedVideo = await getCachedYouTubeVideo(exerciseId);
 
-    // YouTube - check cache first, then fetch if needed
-    (async () => {
-      try {
-        const cachedVideo = await getCachedYouTubeVideo(exerciseId);
+    if (cachedVideo) {
+      media.youtubeVideoId = cachedVideo.videoId;
+      media.youtubeVideoTitle = cachedVideo.title;
+      media.youtubeThumbnail = `https://img.youtube.com/vi/${cachedVideo.videoId}/hqdefault.jpg`;
+      return media;
+    }
 
-        if (cachedVideo) {
-          return cachedVideo;
-        }
+    // Cache miss - fetch from API
+    const result = await searchYouTubeVideo(exerciseName);
+    if (result) {
+      // Cache for future use
+      await cacheYouTubeVideo(
+        exerciseId,
+        exerciseName,
+        result.videoId,
+        result.title
+      );
 
-        // Cache miss - fetch from API
-        const result = await searchYouTubeVideo(exerciseName);
-        if (result) {
-          // Cache for future use
-          await cacheYouTubeVideo(
-            exerciseId,
-            exerciseName,
-            result.videoId,
-            result.title
-          );
-          return result;
-        }
-        return null;
-      } catch (error) {
-        console.error('Error fetching YouTube video:', error);
-        return null;
-      }
-    })(),
-  ]);
-
-  // Populate media object
-  if (gifUrl) {
-    media.gifUrl = gifUrl;
-  }
-
-  if (youtubeResult) {
-    media.youtubeVideoId = youtubeResult.videoId;
-    media.youtubeVideoTitle = youtubeResult.title;
-    // Generate thumbnail URL
-    media.youtubeThumbnail = `https://img.youtube.com/vi/${youtubeResult.videoId}/hqdefault.jpg`;
-  }
-
-  // Set type based on what we found
-  if (gifUrl && youtubeResult) {
-    media.type = 'both';
-  } else if (gifUrl) {
-    media.type = 'gif';
-  } else if (youtubeResult) {
-    media.type = 'youtube';
-  } else {
-    media.type = 'none';
+      media.youtubeVideoId = result.videoId;
+      media.youtubeVideoTitle = result.title;
+      media.youtubeThumbnail = `https://img.youtube.com/vi/${result.videoId}/hqdefault.jpg`;
+    }
+  } catch (error) {
+    console.error('Error fetching YouTube video:', error);
   }
 
   return media;
 };
 
 /**
- * Helper to check if API keys are configured
+ * Helper to check if YouTube API key is configured
  */
-export const areAPIKeysConfigured = (): {
-  exerciseDB: boolean;
-  youtube: boolean;
-} => {
-  return {
-    exerciseDB: !!RAPIDAPI_KEY,
-    youtube: !!YOUTUBE_API_KEY,
-  };
+export const isYouTubeConfigured = (): boolean => {
+  return !!YOUTUBE_API_KEY;
 };

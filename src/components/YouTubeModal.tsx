@@ -13,7 +13,8 @@ import { Text, Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
+const VIDEO_HEIGHT = Math.round((SCREEN_WIDTH * 9) / 16); // 16:9 aspect ratio
 
 interface Props {
   visible: boolean;
@@ -109,7 +110,7 @@ export default function YouTubeModal({ visible, videoId, videoTitle, onClose }: 
               </View>
             ) : (
               <YoutubePlayer
-                height={232}
+                height={VIDEO_HEIGHT}
                 videoId={videoId}
                 play={false}
                 onError={(error) => {
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: '100%',
-    aspectRatio: 16 / 9,
+    height: VIDEO_HEIGHT,
     backgroundColor: '#000000',
   },
   webview: {

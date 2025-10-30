@@ -8,7 +8,7 @@ import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
  * STRATEGY:
  * - YouTube Videos: Primary visual aid (embedded inline with tap-to-play)
  * - Fullscreen modal: Optional for better viewing experience
- * - Fixed height container (210px) optimized for horizontal videos (16:9)
+ * - Fixed height container (195px) optimized for horizontal videos (16:9)
  *
  * CACHING POLICY:
  * - YouTube: Firestore caching ALLOWED (24hr TTL per ToS)

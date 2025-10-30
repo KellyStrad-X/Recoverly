@@ -8,7 +8,7 @@ import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
  * STRATEGY:
  * - YouTube Videos: Primary visual aid (embedded inline with tap-to-play)
  * - Fullscreen modal: Optional for better viewing experience
- * - Responsive container: Adapts to video aspect ratio (typically 16:9)
+ * - Fixed height container (280px) optimized for horizontal videos (16:9)
  *
  * CACHING POLICY:
  * - YouTube: Firestore caching ALLOWED (24hr TTL per ToS)
@@ -17,9 +17,11 @@ import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
  *   - Reduces API quota usage
  *
  * SEARCH STRATEGY:
- * - Find best match with quickest explanation
- * - Prefer short videos (< 4 min) for concise demonstrations
+ * - Find best match with concise explanation
+ * - Prefer short videos (< 4 min) for quick demonstrations
+ * - Search for "tutorial" and "demonstration" keywords
  * - Filter for embeddable videos to reduce playback errors
+ * - Optimize for horizontal (16:9) videos to avoid pillarboxing
  */
 
 const YOUTUBE_API_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_YOUTUBE_API_KEY || process.env.EXPO_PUBLIC_YOUTUBE_API_KEY;
@@ -136,7 +138,7 @@ const cacheYouTubeVideo = async (
 
 /**
  * Search YouTube for exercise tutorial video
- * Finds best match with quickest explanation
+ * Finds best match with concise explanation (prefers horizontal/16:9 format)
  * Returns video ID and title if found
  */
 export const searchYouTubeVideo = async (
@@ -150,17 +152,17 @@ export const searchYouTubeVideo = async (
   // Debug: Verify API key is loaded (show only first 10 chars for security)
   console.log('YouTube API Key status:', YOUTUBE_API_KEY ? `Configured (${YOUTUBE_API_KEY.substring(0, 10)}...)` : 'Missing');
 
-  // Search for best match with quickest explanation
-  // Prefer short videos for concise demonstrations
+  // Search for best match with concise explanation
+  // Prefer short videos but avoid very short ones (Shorts) which are vertical format
   const searchConfigs = [
     {
-      name: 'short-concise',
+      name: 'short-tutorial',
       params: {
         part: 'snippet',
-        q: `${exerciseName} physical therapy exercise how to`,
+        q: `${exerciseName} physical therapy exercise tutorial`,
         type: 'video',
         maxResults: '1',
-        videoDuration: 'short', // < 4 min for quick explanations
+        videoDuration: 'short', // < 4 min for concise explanations
         videoEmbeddable: 'true',
         relevanceLanguage: 'en',
         key: YOUTUBE_API_KEY,
@@ -170,7 +172,7 @@ export const searchYouTubeVideo = async (
       name: 'fallback',
       params: {
         part: 'snippet',
-        q: `${exerciseName} physical therapy exercise`,
+        q: `${exerciseName} exercise demonstration`,
         type: 'video',
         maxResults: '1',
         videoEmbeddable: 'true',
@@ -229,7 +231,8 @@ export const searchYouTubeVideo = async (
  * STRATEGY:
  * - Use exercise NAME (not ID) as cache key for uniqueness
  * - Check cache first (24hr TTL)
- * - If cache miss, fetch from YouTube API (best match, quickest explanation)
+ * - If cache miss, fetch from YouTube API (best match, concise explanation)
+ * - Prefer horizontal videos (16:9) for consistent container display
  * - Cache result for future use
  *
  * Component-level caching (caller's responsibility):
@@ -257,7 +260,7 @@ export const fetchExerciseMedia = async (
       return media;
     }
 
-    // Cache miss - fetch from API (best match with quickest explanation)
+    // Cache miss - fetch from API (best match, concise explanation, horizontal video)
     console.log(`🔍 Searching YouTube for: ${exerciseName}`);
     const result = await searchYouTubeVideo(exerciseName);
     if (result) {

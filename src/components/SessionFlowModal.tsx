@@ -333,16 +333,14 @@ export default function SessionFlowModal({ visible, plan, onClose, onComplete }:
             {/* Visual Aid - Inline YouTube Player */}
             {media && media.youtubeVideoId && (
               <View style={styles.exerciseMediaContainer}>
-                <View style={styles.inlineVideoPlayer}>
-                  <YoutubePlayer
-                    height={Math.round((screenWidth - 40) * (9 / 16))}
-                    videoId={media.youtubeVideoId}
-                    play={false}
-                    onError={(error) => {
-                      console.warn('YouTube Player error:', error);
-                    }}
-                  />
-                </View>
+                <YoutubePlayer
+                  height={280}
+                  videoId={media.youtubeVideoId}
+                  play={false}
+                  onError={(error) => {
+                    console.warn('YouTube Player error:', error);
+                  }}
+                />
 
                 {/* Optional: Fullscreen button */}
                 <TouchableOpacity
@@ -852,9 +850,6 @@ const styles = StyleSheet.create({
   },
   exerciseMediaContainer: {
     marginBottom: 24,
-  },
-  inlineVideoPlayer: {
-    width: '100%',
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#000000',

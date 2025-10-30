@@ -8,7 +8,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 interface DashboardTrackingProps {
   averagePain: number;
   activePlansCount: number;
-  completedPlansCount: number;
   recentSessions: SessionLog[];
 }
 
@@ -34,10 +33,59 @@ const getPainLabel = (painLevel: number): string => {
 export default function DashboardTracking({
   averagePain,
   activePlansCount,
-  completedPlansCount,
   recentSessions,
 }: DashboardTrackingProps) {
   const [monthOffset, setMonthOffset] = useState(0); // 0 = current month, -1 = previous, +1 = next
+
+  // Calculate current streak of consecutive days with sessions
+  const calculateStreak = (): number => {
+    if (recentSessions.length === 0) return 0;
+
+    // Sort sessions by date (most recent first)
+    const sortedSessions = [...recentSessions].sort((a, b) =>
+      b.completedAt.toDate().getTime() - a.completedAt.toDate().getTime()
+    );
+
+    // Group sessions by day
+    const sessionsByDay = new Map<string, boolean>();
+    sortedSessions.forEach(session => {
+      const date = session.completedAt.toDate();
+      date.setHours(0, 0, 0, 0);
+      const dateKey = date.getTime().toString();
+      sessionsByDay.set(dateKey, true);
+    });
+
+    // Check for consecutive days starting from today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let streak = 0;
+    let currentDate = new Date(today);
+
+    // Check if there's a session today or yesterday (allow for missed today)
+    const todayKey = today.getTime().toString();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayKey = yesterday.getTime().toString();
+
+    if (!sessionsByDay.has(todayKey) && !sessionsByDay.has(yesterdayKey)) {
+      return 0; // Streak is broken
+    }
+
+    // Start counting from today if there's a session, otherwise from yesterday
+    if (!sessionsByDay.has(todayKey)) {
+      currentDate.setDate(currentDate.getDate() - 1);
+    }
+
+    // Count consecutive days
+    while (sessionsByDay.has(currentDate.getTime().toString())) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    }
+
+    return streak;
+  };
+
+  const currentStreak = calculateStreak();
 
   // Generate calendar data for a specific month
   const generateCalendarData = (offset: number) => {
@@ -155,17 +203,17 @@ export default function DashboardTracking({
           </View>
         </View>
 
-        {/* Completed Plans Widget */}
+        {/* Streak Widget */}
         <View style={styles.widget}>
           <View style={styles.widgetHeader}>
-            <MaterialCommunityIcons name="check-circle" size={14} color="#8E8E93" />
-            <Text style={styles.widgetLabel}>Done</Text>
+            <MaterialCommunityIcons name="fire" size={14} color="#8E8E93" />
+            <Text style={styles.widgetLabel}>Streak</Text>
           </View>
           <View style={styles.circularProgressContainer}>
-            <View style={[styles.circularProgress, styles.completedProgress]}>
-              <Text style={styles.circularProgressNumber}>{completedPlansCount}</Text>
+            <View style={[styles.circularProgress, styles.streakProgress]}>
+              <Text style={styles.circularProgressNumber}>{currentStreak}</Text>
             </View>
-            <Text style={styles.circularProgressLabel}>Plans</Text>
+            <Text style={styles.circularProgressLabel}>Days</Text>
           </View>
         </View>
       </View>
@@ -229,29 +277,29 @@ const styles = StyleSheet.create({
   },
   widgetsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 12,
   },
   widget: {
     flex: 1,
     backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 10,
+    padding: 10,
     borderWidth: 1,
     borderColor: '#2C2C2E',
   },
   wideWidget: {
-    flex: 1.4,
+    flex: 1.3,
   },
   widgetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    gap: 4,
+    marginBottom: 6,
+    gap: 3,
   },
   widgetLabel: {
     color: '#8E8E93',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -259,54 +307,54 @@ const styles = StyleSheet.create({
   painContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   painEmoji: {
-    fontSize: 32,
+    fontSize: 28,
   },
   painValue: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
   painLabel: {
     color: '#66BB6A',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: 1,
   },
   circularProgressContainer: {
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   circularProgress: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 3,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2.5,
     borderColor: '#66BB6A',
     backgroundColor: '#0A0A0A',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  completedProgress: {
-    borderColor: '#4CAF50',
+  streakProgress: {
+    borderColor: '#FF9800',
   },
   circularProgressNumber: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
   },
   circularProgressLabel: {
     color: '#8E8E93',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
   },
   calendarSection: {
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
-    padding: 16,
+    padding: 18,
     borderWidth: 1,
     borderColor: '#2C2C2E',
   },
@@ -314,7 +362,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   calendarTitleContainer: {
     flexDirection: 'row',
@@ -337,24 +385,24 @@ const styles = StyleSheet.create({
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 5,
-    marginBottom: 12,
+    gap: 7,
+    marginBottom: 14,
   },
   calendarDay: {
     alignItems: 'center',
   },
   calendarDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#2C2C2E',
   },
   emptyDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#3A3A3C',
   },
   todayBorder: {

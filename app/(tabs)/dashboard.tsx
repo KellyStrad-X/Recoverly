@@ -23,7 +23,6 @@ import { generateRecoveryProtocol, type Message as AIMessage } from '@/services/
 import {
   getUserActivePlans,
   getUserRecentSessions,
-  getUserCompletedPlansCount,
   calculateAveragePain,
 } from '@/services/planService';
 import type { RehabPlan, SessionLog } from '@/types/plan';
@@ -71,7 +70,6 @@ export default function DashboardScreen() {
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [typewriterText, setTypewriterText] = useState('');
   const [recentSessions, setRecentSessions] = useState<SessionLog[]>([]);
-  const [completedPlansCount, setCompletedPlansCount] = useState(0);
   const [averagePain, setAveragePain] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const carouselRef = useRef<FlatList>(null);
@@ -241,7 +239,6 @@ export default function DashboardScreen() {
       if (!user) {
         setActivePlans([]);
         setRecentSessions([]);
-        setCompletedPlansCount(0);
         setAveragePain(0);
         setLoadingPlans(false);
         return;
@@ -251,15 +248,13 @@ export default function DashboardScreen() {
         setLoadingPlans(true);
 
         // Fetch all data in parallel
-        const [plans, sessions, completedCount] = await Promise.all([
+        const [plans, sessions] = await Promise.all([
           getUserActivePlans(user.uid),
           getUserRecentSessions(user.uid, 30),
-          getUserCompletedPlansCount(user.uid),
         ]);
 
         setActivePlans(plans);
         setRecentSessions(sessions);
-        setCompletedPlansCount(completedCount);
 
         // Calculate average pain
         const avgPain = calculateAveragePain(sessions);
@@ -731,7 +726,6 @@ export default function DashboardScreen() {
                 <DashboardTracking
                   averagePain={averagePain}
                   activePlansCount={activePlans.length}
-                  completedPlansCount={completedPlansCount}
                   recentSessions={recentSessions}
                 />
               </Animated.View>

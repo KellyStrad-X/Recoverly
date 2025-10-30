@@ -1,2105 +1,694 @@
 {
   "metadata": {
-    "purpose": "Curated list for REHAB and PREHAB focused on recovery and injury prevention",
-    "equipment": [
-      "bodyweight",
-      "resistance bands"
-    ],
-    "totalExercises": 296,
-    "removedExercises": 37,
-    "excludedTypes": [
-      "Advanced calisthenics (muscle-ups, levers, etc.)",
-      "High-impact plyometrics (burpees, jumps)",
-      "Pure hypertrophy movements",
-      "Exercises requiring specialized equipment",
-      "Advanced gymnastics movements"
-    ],
-    "focusAreas": [
-      "Mobility and flexibility",
-      "Core stability",
-      "Postural correction",
-      "Joint rehabilitation",
-      "Pain management",
-      "Movement restoration"
-    ],
-    "refinedAt": "2025-10-30T15:56:28.998Z"
+    "purpose": "Purpose-built rehab exercise list for Recoverly",
+    "focus": "Common physical therapy exercises for injury recovery and pain management",
+    "equipment": ["bodyweight", "resistance bands"],
+    "totalExercises": 120,
+    "createdAt": "2025-10-30",
+    "source": "Curated from common PT practice, not imported from fitness databases"
   },
   "instructions": {
-    "forAI": "When generating exercise plans, ONLY use exercise names from this list. Use the exact \"name\" field. These exercises are specifically selected for rehabilitation and recovery, NOT muscle building or advanced fitness.",
-    "matching": "The exercise ID will be used to fetch GIFs from ExerciseDB API."
+    "forAI": "Use ONLY these exercises. Names are standardized PT terminology for easy YouTube searching.",
+    "naming": "Simple, descriptive names that physical therapists and YouTube recognize"
   },
   "exercises": [
     {
-      "id": "0001",
-      "name": "3/4 sit-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "pelvic tilt",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Lower back pain, core stability"
     },
     {
-      "id": "0002",
-      "name": "45° side bend",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "cat cow stretch",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Spinal mobility, lower back pain"
     },
     {
-      "id": "0006",
-      "name": "heel touches",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "bird dog",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Core stability, lower back pain"
     },
     {
-      "id": "0020",
-      "name": "balance board",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0129",
-      "name": "bench dip",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0130",
-      "name": "bench hip extension",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0137",
-      "name": "body-up",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0138",
-      "name": "reverse crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0251",
-      "name": "chest dip",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0257",
-      "name": "knee circles",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0259",
-      "name": "close-grip push-up",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0262",
-      "name": "cross body crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0267",
-      "name": "overhead crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0274",
-      "name": "crunch floor",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0276",
       "name": "dead bug",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "bodyPart": "core",
+      "equipment": "body weight",
+      "primaryUse": "Core stability, lower back pain"
     },
     {
-      "id": "0283",
-      "name": "diamond push-up",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
+      "name": "bridge",
+      "bodyPart": "glutes",
+      "equipment": "body weight",
+      "primaryUse": "Glute activation, lower back pain"
     },
     {
-      "id": "0284",
-      "name": "donkey calf raise",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
+      "name": "glute bridge",
+      "bodyPart": "glutes",
+      "equipment": "body weight",
+      "primaryUse": "Glute strengthening, hip stability"
     },
     {
-      "id": "0443",
-      "name": "elbow to knee crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "single leg bridge",
+      "bodyPart": "glutes",
+      "equipment": "body weight",
+      "primaryUse": "Glute strengthening, hip stability"
     },
     {
-      "id": "0456",
-      "name": "leg raise (bent knee)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "clamshell",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip external rotation, IT band issues"
     },
     {
-      "id": "0457",
-      "name": "leg raise (straight arm)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "side lying leg raise",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip abduction, IT band issues"
     },
     {
-      "id": "0464",
-      "name": "front plank with twist",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "fire hydrant",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip mobility, glute activation"
     },
     {
-      "id": "0472",
-      "name": "hanging leg raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "knee to chest stretch",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Lower back pain, hip flexibility"
     },
     {
-      "id": "0473",
-      "name": "hanging pike",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "child's pose",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Lower back stretch, relaxation"
     },
     {
-      "id": "0474",
-      "name": "hanging straight leg hip raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "cobra stretch",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Lower back extension, flexibility"
     },
     {
-      "id": "0475",
-      "name": "hanging straight leg raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "plank",
+      "bodyPart": "core",
+      "equipment": "body weight",
+      "primaryUse": "Core stability, overall strength"
     },
     {
-      "id": "0476",
-      "name": "hanging leg raise with twist",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "side plank",
+      "bodyPart": "core",
+      "equipment": "body weight",
+      "primaryUse": "Oblique strengthening, core stability"
     },
     {
-      "id": "0484",
-      "name": "hip raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0488",
-      "name": "bench hyperextension",
-      "bodyPart": "back",
-      "target": "spine",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0489",
-      "name": "hyperextension",
-      "bodyPart": "back",
-      "target": "spine",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0491",
-      "name": "incline leg raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0493",
-      "name": "incline push-up",
+      "name": "wall push up",
       "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "equipment": "body weight",
+      "primaryUse": "Upper body strengthening, shoulder stability"
     },
     {
-      "id": "0494",
-      "name": "incline reverse grip push-up",
+      "name": "knee push up",
       "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "equipment": "body weight",
+      "primaryUse": "Upper body strengthening"
     },
     {
-      "id": "0495",
-      "name": "incline twisting sit-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "hamstring stretch",
+      "bodyPart": "hamstrings",
+      "equipment": "body weight",
+      "primaryUse": "Hamstring flexibility, knee pain"
     },
     {
-      "id": "0496",
-      "name": "inverse leg curl (bench support)",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
+      "name": "standing hamstring stretch",
+      "bodyPart": "hamstrings",
+      "equipment": "body weight",
+      "primaryUse": "Hamstring flexibility"
     },
     {
-      "id": "0497",
-      "name": "inverted row",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "body weight"
+      "name": "quad stretch",
+      "bodyPart": "quads",
+      "equipment": "body weight",
+      "primaryUse": "Quad flexibility, knee pain"
     },
     {
-      "id": "0499",
-      "name": "inverted row",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "body weight"
+      "name": "standing quad stretch",
+      "bodyPart": "quads",
+      "equipment": "body weight",
+      "primaryUse": "Quad flexibility"
     },
     {
-      "id": "0500",
-      "name": "isometric wipers",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "name": "calf raise",
+      "bodyPart": "calves",
+      "equipment": "body weight",
+      "primaryUse": "Calf strengthening, ankle stability"
     },
     {
-      "id": "0507",
-      "name": "jackknife sit-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "single leg calf raise",
+      "bodyPart": "calves",
+      "equipment": "body weight",
+      "primaryUse": "Calf strengthening, ankle stability"
     },
     {
-      "id": "0508",
-      "name": "janda sit-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "wall calf stretch",
+      "bodyPart": "calves",
+      "equipment": "body weight",
+      "primaryUse": "Calf flexibility, plantar fasciitis"
     },
     {
-      "id": "0555",
-      "name": "kick out sit",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
+      "name": "ankle circles",
+      "bodyPart": "ankles",
+      "equipment": "body weight",
+      "primaryUse": "Ankle mobility, ankle sprain recovery"
     },
     {
-      "id": "0570",
-      "name": "leg pull in flat bench",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "ankle alphabet",
+      "bodyPart": "ankles",
+      "equipment": "body weight",
+      "primaryUse": "Ankle mobility and strengthening"
     },
     {
-      "id": "0613",
-      "name": "side-lying quad stretch",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
+      "name": "seated piriformis stretch",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip flexibility, sciatica"
     },
     {
-      "id": "0620",
-      "name": "lying leg raise flat bench",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "figure 4 stretch",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip flexibility, sciatica"
     },
     {
-      "id": "0624",
-      "name": "march sit (wall)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
+      "name": "hip flexor stretch",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip flexibility, lower back pain"
     },
     {
-      "id": "0634",
-      "name": "negative crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "kneeling hip flexor stretch",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip flexibility"
     },
     {
-      "id": "0635",
-      "name": "oblique crunches floor",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "IT band stretch",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "IT band tightness, knee pain"
     },
     {
-      "id": "0642",
-      "name": "outside leg kick push-up",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0643",
-      "name": "overhead triceps stretch",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0658",
-      "name": "wall push-up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0659",
-      "name": "wall push-up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0661",
-      "name": "push-up inside leg kick",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0662",
-      "name": "push-up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0664",
-      "name": "push-up to side plank",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0666",
-      "name": "raise single arm push-up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0668",
-      "name": "decline bridge",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0669",
-      "name": "rear deltoid stretch",
-      "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0672",
-      "name": "reverse dip",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0677",
-      "name": "ring dips",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0684",
-      "name": "run (equipment)",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0687",
-      "name": "russian twist",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0689",
-      "name": "seated leg raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0690",
-      "name": "seated lower back stretch",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0691",
-      "name": "seated side crunch (wall)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0696",
-      "name": "assisted leg curl",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0697",
-      "name": "self assisted inverse leg curl",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0699",
-      "name": "shoulder tap push-up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0705",
-      "name": "side bridge",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0709",
-      "name": "side hip (on parallel bars)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0710",
-      "name": "side hip abduction",
-      "bodyPart": "upper legs",
-      "target": "abductors",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0716",
-      "name": "side push neck stretch",
+      "name": "neck rotation",
       "bodyPart": "neck",
-      "target": "levator scapulae",
-      "equipment": "body weight"
+      "equipment": "body weight",
+      "primaryUse": "Neck mobility, neck pain"
     },
     {
-      "id": "0717",
-      "name": "side push-up",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
+      "name": "neck side bend",
+      "bodyPart": "neck",
+      "equipment": "body weight",
+      "primaryUse": "Neck flexibility, neck pain"
     },
     {
-      "id": "0720",
-      "name": "side-to-side chin",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "body weight"
+      "name": "chin tuck",
+      "bodyPart": "neck",
+      "equipment": "body weight",
+      "primaryUse": "Neck posture, neck pain"
     },
     {
-      "id": "0721",
-      "name": "side wrist pull stretch",
-      "bodyPart": "lower arms",
-      "target": "forearms",
-      "equipment": "body weight"
+      "name": "shoulder rolls",
+      "bodyPart": "shoulders",
+      "equipment": "body weight",
+      "primaryUse": "Shoulder mobility, tension relief"
     },
     {
-      "id": "0725",
-      "name": "single arm push-up",
+      "name": "arm circles",
+      "bodyPart": "shoulders",
+      "equipment": "body weight",
+      "primaryUse": "Shoulder mobility and warm-up"
+    },
+    {
+      "name": "doorway chest stretch",
       "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "equipment": "body weight",
+      "primaryUse": "Chest flexibility, posture"
     },
     {
-      "id": "0735",
-      "name": "sit-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
+      "name": "upper back stretch",
+      "bodyPart": "upper back",
+      "equipment": "body weight",
+      "primaryUse": "Upper back flexibility, posture"
     },
     {
-      "id": "0794",
-      "name": "standing lateral stretch",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "body weight"
+      "name": "thoracic rotation",
+      "bodyPart": "upper back",
+      "equipment": "body weight",
+      "primaryUse": "Spinal mobility, upper back pain"
     },
     {
-      "id": "0795",
-      "name": "standing single leg curl",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
+      "name": "scapular squeeze",
+      "bodyPart": "upper back",
+      "equipment": "body weight",
+      "primaryUse": "Posture, shoulder blade stability"
     },
     {
-      "id": "0805",
-      "name": "suspended abdominal fallout",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0807",
-      "name": "suspended reverse crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0809",
-      "name": "suspended split squat",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0812",
-      "name": "triceps dip (bench leg)",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0813",
-      "name": "triceps dip (between benches)",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0814",
-      "name": "triceps dip",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0815",
-      "name": "triceps dips floor",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0816",
-      "name": "triceps press",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0817",
-      "name": "triceps stretch",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0826",
-      "name": "vertical leg raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0858",
-      "name": "wind sprints",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0865",
-      "name": "lying leg-hip raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0870",
-      "name": "butt-ups",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0871",
-      "name": "tuck crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0872",
-      "name": "reverse crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "0968",
-      "name": "band alternating biceps curl",
-      "bodyPart": "upper arms",
-      "target": "biceps",
-      "equipment": "band"
-    },
-    {
-      "id": "0969",
-      "name": "band alternating v-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
-    },
-    {
-      "id": "0971",
-      "name": "band assisted wheel rollerout",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
-    },
-    {
-      "id": "0974",
-      "name": "band close-grip pulldown",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "band"
-    },
-    {
-      "id": "0975",
-      "name": "band close-grip push-up",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "band"
-    },
-    {
-      "id": "0976",
-      "name": "band concentration curl",
-      "bodyPart": "upper arms",
-      "target": "biceps",
-      "equipment": "band"
-    },
-    {
-      "id": "0977",
-      "name": "band front lateral raise",
+      "name": "wall angel",
       "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "band"
+      "equipment": "body weight",
+      "primaryUse": "Shoulder mobility, posture"
     },
     {
-      "id": "0978",
-      "name": "band front raise",
+      "name": "pendulum exercise",
       "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "band"
+      "equipment": "body weight",
+      "primaryUse": "Shoulder mobility, rotator cuff injury"
     },
     {
-      "id": "0979",
-      "name": "band horizontal pallof press",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
+      "name": "wrist circles",
+      "bodyPart": "wrists",
+      "equipment": "body weight",
+      "primaryUse": "Wrist mobility, carpal tunnel"
     },
     {
-      "id": "0980",
-      "name": "band bent-over hip extension",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
+      "name": "wrist flexor stretch",
+      "bodyPart": "wrists",
+      "equipment": "body weight",
+      "primaryUse": "Wrist flexibility, tennis elbow"
     },
     {
-      "id": "0981",
-      "name": "band jack knife sit-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
+      "name": "wrist extensor stretch",
+      "bodyPart": "wrists",
+      "equipment": "body weight",
+      "primaryUse": "Wrist flexibility, golfer's elbow"
     },
     {
-      "id": "0984",
-      "name": "band lying hip internal rotation",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
+      "name": "seated spinal twist",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Spinal mobility, lower back pain"
     },
     {
-      "id": "0985",
-      "name": "band kneeling twisting crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
+      "name": "supine twist",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Spinal mobility, lower back pain"
     },
     {
-      "id": "0991",
-      "name": "band pull through",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
+      "name": "marching bridge",
+      "bodyPart": "glutes",
+      "equipment": "body weight",
+      "primaryUse": "Core stability, glute activation"
     },
     {
-      "id": "0992",
-      "name": "band push sit-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
+      "name": "monster walk",
+      "bodyPart": "hips",
+      "equipment": "resistance band",
+      "primaryUse": "Hip strengthening, knee stability"
     },
     {
-      "id": "0993",
-      "name": "band reverse fly",
-      "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "band"
+      "name": "lateral band walk",
+      "bodyPart": "hips",
+      "equipment": "resistance band",
+      "primaryUse": "Hip abduction, knee stability"
     },
     {
-      "id": "0994",
-      "name": "band reverse wrist curl",
-      "bodyPart": "lower arms",
-      "target": "forearms",
-      "equipment": "band"
+      "name": "band pull apart",
+      "bodyPart": "upper back",
+      "equipment": "resistance band",
+      "primaryUse": "Posture, shoulder blade stability"
     },
     {
-      "id": "0996",
-      "name": "band seated hip internal rotation",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
+      "name": "band row",
+      "bodyPart": "upper back",
+      "equipment": "resistance band",
+      "primaryUse": "Upper back strengthening, posture"
     },
     {
-      "id": "0997",
       "name": "band shoulder press",
       "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "band"
+      "equipment": "resistance band",
+      "primaryUse": "Shoulder strengthening"
     },
     {
-      "id": "0998",
-      "name": "band side triceps extension",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "band"
-    },
-    {
-      "id": "0999",
-      "name": "band single leg calf raise",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "band"
-    },
-    {
-      "id": "1000",
-      "name": "band single leg calf raise (reverse)",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "band"
-    },
-    {
-      "id": "1001",
-      "name": "band single leg split squat",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "band"
-    },
-    {
-      "id": "1002",
-      "name": "band lying straight leg raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
-    },
-    {
-      "id": "1003",
-      "name": "band squat row",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
-    },
-    {
-      "id": "1004",
-      "name": "band squat",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
-    },
-    {
-      "id": "1005",
-      "name": "band standing crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
-    },
-    {
-      "id": "1007",
-      "name": "band standing twisting crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
-    },
-    {
-      "id": "1008",
-      "name": "band step-up",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
-    },
-    {
-      "id": "1009",
-      "name": "band stiff leg deadlift",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
-    },
-    {
-      "id": "1010",
-      "name": "band straight leg deadlift",
-      "bodyPart": "back",
-      "target": "spine",
-      "equipment": "band"
-    },
-    {
-      "id": "1011",
-      "name": "band seated twist",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
-    },
-    {
-      "id": "1012",
-      "name": "band twisting overhead press",
+      "name": "band lateral raise",
       "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "band"
+      "equipment": "resistance band",
+      "primaryUse": "Shoulder strengthening"
     },
     {
-      "id": "1013",
-      "name": "band underhand pulldown",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "band"
+      "name": "band front raise",
+      "bodyPart": "shoulders",
+      "equipment": "resistance band",
+      "primaryUse": "Shoulder strengthening"
     },
     {
-      "id": "1014",
-      "name": "band v-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
+      "name": "band external rotation",
+      "bodyPart": "shoulders",
+      "equipment": "resistance band",
+      "primaryUse": "Rotator cuff strengthening"
     },
     {
-      "id": "1015",
-      "name": "band vertical pallof press",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "band"
+      "name": "band internal rotation",
+      "bodyPart": "shoulders",
+      "equipment": "resistance band",
+      "primaryUse": "Rotator cuff strengthening"
     },
     {
-      "id": "1016",
+      "name": "band reverse fly",
+      "bodyPart": "upper back",
+      "equipment": "resistance band",
+      "primaryUse": "Posterior shoulder, posture"
+    },
+    {
+      "name": "band bicep curl",
+      "bodyPart": "biceps",
+      "equipment": "resistance band",
+      "primaryUse": "Bicep strengthening"
+    },
+    {
+      "name": "band tricep extension",
+      "bodyPart": "triceps",
+      "equipment": "resistance band",
+      "primaryUse": "Tricep strengthening"
+    },
+    {
       "name": "band wrist curl",
-      "bodyPart": "lower arms",
-      "target": "forearms",
-      "equipment": "band"
+      "bodyPart": "wrists",
+      "equipment": "resistance band",
+      "primaryUse": "Wrist strengthening, tennis elbow"
     },
     {
-      "id": "1017",
-      "name": "band y-raise",
+      "name": "band wrist extension",
+      "bodyPart": "wrists",
+      "equipment": "resistance band",
+      "primaryUse": "Wrist strengthening, golfer's elbow"
+    },
+    {
+      "name": "band squat",
+      "bodyPart": "legs",
+      "equipment": "resistance band",
+      "primaryUse": "Leg strengthening, knee stability"
+    },
+    {
+      "name": "wall sit",
+      "bodyPart": "quads",
+      "equipment": "body weight",
+      "primaryUse": "Quad strengthening, knee stability"
+    },
+    {
+      "name": "step up",
+      "bodyPart": "legs",
+      "equipment": "body weight",
+      "primaryUse": "Leg strengthening, knee rehab"
+    },
+    {
+      "name": "step down",
+      "bodyPart": "legs",
+      "equipment": "body weight",
+      "primaryUse": "Eccentric quad control, knee rehab"
+    },
+    {
+      "name": "heel slide",
+      "bodyPart": "knees",
+      "equipment": "body weight",
+      "primaryUse": "Knee flexion, post-surgery rehab"
+    },
+    {
+      "name": "straight leg raise",
+      "bodyPart": "quads",
+      "equipment": "body weight",
+      "primaryUse": "Quad strengthening, knee rehab"
+    },
+    {
+      "name": "short arc quad",
+      "bodyPart": "quads",
+      "equipment": "body weight",
+      "primaryUse": "Quad strengthening, knee rehab"
+    },
+    {
+      "name": "quad set",
+      "bodyPart": "quads",
+      "equipment": "body weight",
+      "primaryUse": "Quad activation, knee rehab"
+    },
+    {
+      "name": "prone knee bend",
+      "bodyPart": "hamstrings",
+      "equipment": "body weight",
+      "primaryUse": "Hamstring strengthening"
+    },
+    {
+      "name": "toe raises",
+      "bodyPart": "shins",
+      "equipment": "body weight",
+      "primaryUse": "Shin strengthening, shin splints"
+    },
+    {
+      "name": "heel walks",
+      "bodyPart": "shins",
+      "equipment": "body weight",
+      "primaryUse": "Shin strengthening, shin splints"
+    },
+    {
+      "name": "toe walks",
+      "bodyPart": "calves",
+      "equipment": "body weight",
+      "primaryUse": "Calf strengthening, ankle stability"
+    },
+    {
+      "name": "single leg balance",
+      "bodyPart": "ankles",
+      "equipment": "body weight",
+      "primaryUse": "Balance, ankle stability"
+    },
+    {
+      "name": "tandem stance",
+      "bodyPart": "core",
+      "equipment": "body weight",
+      "primaryUse": "Balance training"
+    },
+    {
+      "name": "single leg deadlift",
+      "bodyPart": "glutes",
+      "equipment": "body weight",
+      "primaryUse": "Balance, glute strengthening"
+    },
+    {
+      "name": "seated rows",
+      "bodyPart": "upper back",
+      "equipment": "resistance band",
+      "primaryUse": "Upper back strengthening, posture"
+    },
+    {
+      "name": "lat pulldown",
+      "bodyPart": "upper back",
+      "equipment": "resistance band",
+      "primaryUse": "Upper back strengthening"
+    },
+    {
+      "name": "face pull",
+      "bodyPart": "upper back",
+      "equipment": "resistance band",
+      "primaryUse": "Posterior shoulder, posture"
+    },
+    {
+      "name": "seated trunk rotation",
+      "bodyPart": "core",
+      "equipment": "body weight",
+      "primaryUse": "Core rotation, spinal mobility"
+    },
+    {
+      "name": "standing trunk rotation",
+      "bodyPart": "core",
+      "equipment": "body weight",
+      "primaryUse": "Core rotation, spinal mobility"
+    },
+    {
+      "name": "pelvic clock",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Pelvic mobility, core awareness"
+    },
+    {
+      "name": "heel to toe walk",
+      "bodyPart": "balance",
+      "equipment": "body weight",
+      "primaryUse": "Balance training, gait"
+    },
+    {
+      "name": "side stepping",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip strengthening, lateral stability"
+    },
+    {
+      "name": "backward walking",
+      "bodyPart": "legs",
+      "equipment": "body weight",
+      "primaryUse": "Gait training, quad strengthening"
+    },
+    {
+      "name": "sit to stand",
+      "bodyPart": "legs",
+      "equipment": "body weight",
+      "primaryUse": "Functional leg strengthening"
+    },
+    {
+      "name": "mini squat",
+      "bodyPart": "legs",
+      "equipment": "body weight",
+      "primaryUse": "Leg strengthening, knee rehab"
+    },
+    {
+      "name": "lunge",
+      "bodyPart": "legs",
+      "equipment": "body weight",
+      "primaryUse": "Leg strengthening, balance"
+    },
+    {
+      "name": "reverse lunge",
+      "bodyPart": "legs",
+      "equipment": "body weight",
+      "primaryUse": "Leg strengthening, knee-friendly"
+    },
+    {
+      "name": "side lunge",
+      "bodyPart": "legs",
+      "equipment": "body weight",
+      "primaryUse": "Hip mobility, lateral strength"
+    },
+    {
+      "name": "prone press up",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Lower back extension"
+    },
+    {
+      "name": "prone on elbows",
+      "bodyPart": "lower back",
+      "equipment": "body weight",
+      "primaryUse": "Lower back extension, disc issues"
+    },
+    {
+      "name": "abdominal bracing",
+      "bodyPart": "core",
+      "equipment": "body weight",
+      "primaryUse": "Core activation, stability"
+    },
+    {
+      "name": "diaphragmatic breathing",
+      "bodyPart": "core",
+      "equipment": "body weight",
+      "primaryUse": "Breathing mechanics, relaxation"
+    },
+    {
+      "name": "pec stretch",
+      "bodyPart": "chest",
+      "equipment": "body weight",
+      "primaryUse": "Chest flexibility, posture"
+    },
+    {
+      "name": "lat stretch",
+      "bodyPart": "upper back",
+      "equipment": "body weight",
+      "primaryUse": "Lat flexibility, shoulder mobility"
+    },
+    {
+      "name": "tricep stretch",
+      "bodyPart": "triceps",
+      "equipment": "body weight",
+      "primaryUse": "Tricep flexibility"
+    },
+    {
+      "name": "cross body shoulder stretch",
       "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "band"
+      "equipment": "body weight",
+      "primaryUse": "Posterior shoulder flexibility"
     },
     {
-      "id": "1018",
-      "name": "band shrug",
-      "bodyPart": "back",
-      "target": "traps",
-      "equipment": "band"
-    },
-    {
-      "id": "1022",
-      "name": "band standing rear delt row",
+      "name": "sleeper stretch",
       "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "band"
+      "equipment": "body weight",
+      "primaryUse": "Internal rotation, rotator cuff"
     },
     {
-      "id": "1023",
-      "name": "band stiff leg deadlift",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
+      "name": "band pallof press",
+      "bodyPart": "core",
+      "equipment": "resistance band",
+      "primaryUse": "Anti-rotation core strength"
     },
     {
-      "id": "1167",
-      "name": "dynamic chest stretch",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "name": "band wood chop",
+      "bodyPart": "core",
+      "equipment": "resistance band",
+      "primaryUse": "Rotational core strength"
     },
     {
-      "id": "1254",
-      "name": "band bench press",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "band"
+      "name": "standing calf stretch",
+      "bodyPart": "calves",
+      "equipment": "body weight",
+      "primaryUse": "Calf flexibility, Achilles issues"
     },
     {
-      "id": "1271",
-      "name": "front shoulder stretch",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "name": "soleus stretch",
+      "bodyPart": "calves",
+      "equipment": "body weight",
+      "primaryUse": "Deep calf flexibility, Achilles issues"
     },
     {
-      "id": "1273",
-      "name": "clap push up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "name": "towel calf stretch",
+      "bodyPart": "calves",
+      "equipment": "body weight",
+      "primaryUse": "Calf flexibility, plantar fasciitis"
     },
     {
-      "id": "1275",
-      "name": "drop push up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "name": "plantar fascia stretch",
+      "bodyPart": "feet",
+      "equipment": "body weight",
+      "primaryUse": "Plantar fasciitis, foot pain"
     },
     {
-      "id": "1297",
-      "name": "isometric chest squeeze",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "name": "toe spread",
+      "bodyPart": "feet",
+      "equipment": "body weight",
+      "primaryUse": "Foot mobility, toe strength"
     },
     {
-      "id": "1306",
-      "name": "plyo push up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "name": "groin stretch",
+      "bodyPart": "groin",
+      "equipment": "body weight",
+      "primaryUse": "Groin flexibility, hip mobility"
     },
     {
-      "id": "1311",
-      "name": "wide hand push up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "name": "butterfly stretch",
+      "bodyPart": "groin",
+      "equipment": "body weight",
+      "primaryUse": "Groin flexibility, hip mobility"
     },
     {
-      "id": "1346",
-      "name": "kneeling lat stretch",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "body weight"
+      "name": "90-90 hip stretch",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip rotation, hip mobility"
     },
     {
-      "id": "1352",
-      "name": "lower back curl",
-      "bodyPart": "back",
-      "target": "spine",
-      "equipment": "body weight"
+      "name": "frog stretch",
+      "bodyPart": "hips",
+      "equipment": "body weight",
+      "primaryUse": "Hip flexibility, adductor stretch"
     },
     {
-      "id": "1358",
-      "name": "side lying floor stretch",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "body weight"
+      "name": "kneeling ankle mobility",
+      "bodyPart": "ankles",
+      "equipment": "body weight",
+      "primaryUse": "Ankle dorsiflexion, squat depth"
     },
     {
-      "id": "1362",
-      "name": "sphinx",
-      "bodyPart": "back",
-      "target": "spine",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1363",
-      "name": "spine stretch",
-      "bodyPart": "back",
-      "target": "spine",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1364",
-      "name": "standing pelvic tilt",
-      "bodyPart": "back",
-      "target": "spine",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1365",
-      "name": "upper back stretch",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1366",
-      "name": "upward facing dog",
-      "bodyPart": "back",
-      "target": "spine",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1368",
-      "name": "ankle circles",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1369",
-      "name": "band calf raise (both legs)",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "band"
-    },
-    {
-      "id": "1373",
-      "name": "bodyweight standing calf raise",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1377",
-      "name": "wall calf stretch",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1386",
-      "name": "one leg donkey calf raise",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1387",
-      "name": "one leg floor calf raise",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1390",
-      "name": "seated calf stretch",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1397",
-      "name": "standing calves",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1398",
-      "name": "standing calves calf stretch",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1399",
-      "name": "bench dip on floor",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1403",
-      "name": "neck side stretch",
-      "bodyPart": "neck",
-      "target": "levator scapulae",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1405",
-      "name": "back pec stretch",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1407",
-      "name": "wall calf push stretch",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1408",
-      "name": "band hip lift",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "band"
-    },
-    {
-      "id": "1418",
-      "name": "hug knees to chest",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1419",
-      "name": "iron cross stretch",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1421",
-      "name": "forearm push-up",
-      "bodyPart": "lower arms",
-      "target": "forearms",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1422",
-      "name": "pelvic tilt into bridge",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1423",
-      "name": "reverse hyper on flat bench",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1424",
-      "name": "seated glute stretch",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1427",
-      "name": "straight leg outer hip abductor",
-      "bodyPart": "upper legs",
-      "target": "abductors",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1428",
-      "name": "wrist circles",
-      "bodyPart": "lower arms",
-      "target": "forearms",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1460",
-      "name": "walking lunge",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1466",
-      "name": "twist hip lift",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1467",
-      "name": "push-up on lower arms",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1468",
-      "name": "crab twist toe touch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1471",
-      "name": "inchworm",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1476",
-      "name": "one leg squat",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1489",
-      "name": "sissy squat",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1490",
-      "name": "standing calf raise",
-      "bodyPart": "lower legs",
-      "target": "calves",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1494",
-      "name": "butterfly yoga pose",
-      "bodyPart": "upper legs",
-      "target": "adductors",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1495",
-      "name": "oblique crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1511",
-      "name": "hamstring stretch",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1512",
-      "name": "all fours squad stretch",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1548",
-      "name": "chair leg extended stretch",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1576",
-      "name": "leg up hamstring stretch",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1585",
-      "name": "runners stretch",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1587",
-      "name": "seated wide angle pose sequence",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1604",
-      "name": "world greatest stretch",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1685",
-      "name": "squat to overhead reach",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1686",
-      "name": "overhead reach with twist",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1687",
-      "name": "posterior step to overhead reach",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1688",
-      "name": "lunge with twist",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1689",
-      "name": "push and pull bodyweight",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1753",
-      "name": "three bench dip",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1761",
-      "name": "hanging oblique knee raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1764",
-      "name": "hanging leg hip raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1766",
-      "name": "self assisted inverse leg curl",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1769",
-      "name": "bodyweight side lying biceps curl",
-      "bodyPart": "upper arms",
-      "target": "biceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1770",
-      "name": "biceps leg concentration curl",
-      "bodyPart": "upper arms",
-      "target": "biceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1771",
-      "name": "bodyweight kneeling triceps extension",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1772",
-      "name": "reverse push-up",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1774",
-      "name": "side bridge hip abduction",
-      "bodyPart": "upper legs",
-      "target": "abductors",
-      "equipment": "body weight"
-    },
-    {
-      "id": "1775",
-      "name": "side plank hip adduction",
-      "bodyPart": "upper legs",
-      "target": "adductors",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2271",
-      "name": "left hook (boxing)",
-      "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2300",
-      "name": "inverted row bent knees",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2312",
-      "name": "lying elbow to knee",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2329",
-      "name": "spine twist",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2333",
-      "name": "arm slingers hanging straight legs",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2355",
-      "name": "hanging knee raises",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2363",
-      "name": "wide-grip chest dip",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2368",
-      "name": "split squats",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2398",
-      "name": "close-grip push-up (kneeling)",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2429",
-      "name": "frog crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2462",
-      "name": "chest dip on straight bar",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2466",
-      "name": "bridge with knee drive",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2567",
-      "name": "seated piriformis stretch",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2571",
-      "name": "rocking frog stretch",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2801",
-      "name": "twisted leg raise (female)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2802",
-      "name": "twisted leg raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "2963",
-      "name": "captains chair straight leg raise",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3006",
-      "name": "resistance band seated hip abduction",
-      "bodyPart": "upper legs",
-      "target": "abductors",
-      "equipment": "resistance band"
-    },
-    {
-      "id": "3007",
-      "name": "resistance band leg extension",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "resistance band"
-    },
-    {
-      "id": "3011",
-      "name": "incline scapula push up",
-      "bodyPart": "chest",
-      "target": "serratus anterior",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3012",
-      "name": "scapula dips",
-      "bodyPart": "back",
-      "target": "traps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3013",
-      "name": "low glute bridge on floor",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3016",
-      "name": "curl-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3021",
-      "name": "scapula push-up",
-      "bodyPart": "chest",
-      "target": "serratus anterior",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3116",
-      "name": "band fixed back underhand pulldown",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "band"
-    },
-    {
-      "id": "3117",
-      "name": "band pulldown (close grip)",
-      "bodyPart": "back",
-      "target": "lats",
-      "equipment": "band"
-    },
-    {
-      "id": "3119",
-      "name": "potty squat",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3122",
-      "name": "resistance band seated shoulder press",
-      "bodyPart": "shoulders",
-      "target": "delts",
-      "equipment": "resistance band"
-    },
-    {
-      "id": "3123",
-      "name": "resistance band seated biceps curl",
-      "bodyPart": "upper arms",
-      "target": "biceps",
-      "equipment": "resistance band"
-    },
-    {
-      "id": "3124",
-      "name": "resistance band seated chest press",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "resistance band"
-    },
-    {
-      "id": "3132",
-      "name": "potty squat with support",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3144",
-      "name": "band seated row",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "resistance band"
-    },
-    {
-      "id": "3145",
-      "name": "push-up plus",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3147",
-      "name": "pelvic tilt",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3158",
-      "name": "standing row (close grip)",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3165",
-      "name": "standing row (towel)",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3166",
-      "name": "standing row",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3193",
-      "name": "glute-ham raise",
-      "bodyPart": "upper legs",
-      "target": "hamstrings",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3201",
-      "name": "quarter sit-up",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3202",
-      "name": "half sit-up (male)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3203",
-      "name": "prisoner half sit-up (male)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3204",
-      "name": "arms overhead full sit-up (male)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3211",
-      "name": "kneeling push-up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3212",
-      "name": "basic toe touch (male)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3213",
-      "name": "side-to-side toe touch (male)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3214",
-      "name": "arms apart circular toe touch (male)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3215",
-      "name": "hands reversed clasped circular toe touch (male)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3216",
-      "name": "chest tap push-up (male)",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3217",
-      "name": "modified hindu push-up (male)",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3218",
-      "name": "hands clasped circular toe touch (male)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3221",
-      "name": "half knee bends (male)",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3231",
-      "name": "two toe touch (male)",
-      "bodyPart": "back",
-      "target": "spine",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3236",
-      "name": "resistance band hip thrusts on knees (female)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "resistance band"
-    },
-    {
-      "id": "3239",
-      "name": "kneeling plank tap shoulder (male)",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3288",
-      "name": "korean dips",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3289",
-      "name": "impossible dips",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3291",
-      "name": "stalder press",
-      "bodyPart": "upper arms",
-      "target": "triceps",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3298",
-      "name": "straddle planche",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3299",
-      "name": "full planche",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3300",
-      "name": "lean planche",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3301",
-      "name": "frog planche",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3303",
-      "name": "flag",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3304",
-      "name": "skin the cat",
-      "bodyPart": "back",
-      "target": "upper back",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3314",
-      "name": "straddle maltese",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3315",
-      "name": "full maltese",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3318",
-      "name": "swing 360",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3327",
-      "name": "full planche push-up",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3360",
-      "name": "bear crawl",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3361",
-      "name": "skater hops",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3420",
-      "name": "v-sit on floor",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3433",
-      "name": "swimmer kicks v. 2 (male)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3470",
-      "name": "forward lunge (male)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3523",
-      "name": "glute bridge two legs on bench (male)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3544",
-      "name": "bodyweight incline side plank",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3552",
-      "name": "quick feet v. 2",
-      "bodyPart": "upper legs",
-      "target": "quads",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3561",
-      "name": "glute bridge march",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3636",
-      "name": "high knee against wall",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3637",
-      "name": "wheel run",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3638",
-      "name": "push to run",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3639",
-      "name": "bent knee lying twist (male)",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3640",
-      "name": "knee touch crunch",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3645",
-      "name": "single leg bridge with outstretched leg",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3656",
-      "name": "short stride run",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3662",
-      "name": "pike-to-cobra push-up",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3663",
-      "name": "reverse plank with leg lift",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3665",
-      "name": "power point plank",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3667",
-      "name": "side lying hip adduction (male)",
-      "bodyPart": "upper legs",
-      "target": "adductors",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3672",
-      "name": "back and forth step",
-      "bodyPart": "cardio",
-      "target": "cardiovascular system",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3679",
-      "name": "sit-up with arms on chest",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3698",
-      "name": "inchworm v. 2",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3699",
-      "name": "shoulder tap",
-      "bodyPart": "waist",
-      "target": "abs",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3769",
-      "name": "curtsey squat",
-      "bodyPart": "upper legs",
-      "target": "glutes",
-      "equipment": "body weight"
-    },
-    {
-      "id": "3785",
-      "name": "incline push-up (on box)",
-      "bodyPart": "chest",
-      "target": "pectorals",
-      "equipment": "body weight"
+      "name": "seated ankle pumps",
+      "bodyPart": "ankles",
+      "equipment": "body weight",
+      "primaryUse": "Ankle mobility, circulation"
     }
   ]
 }

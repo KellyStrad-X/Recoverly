@@ -14,9 +14,7 @@ export interface Exercise {
   replacementReason?: string;
   originalExercise?: string;
 
-  // Optional visual aids (for later)
-  exerciseDbId?: string;
-  exerciseDbGifUrl?: string;
+  // Optional visual aids
   youtubeVideoId?: string;
 }
 
